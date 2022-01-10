@@ -1,0 +1,3 @@
+APP=app_name
+REGISTRY=registry.gitlab.com
+PROJECT_NAME=voxe-tv
