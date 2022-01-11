@@ -12,7 +12,6 @@ import (
 type Config struct {
 	Environment string // develop, staging, production
 	LogLevel    string
-	BaseCDN     string
 
 	RPCPort string
 }
@@ -32,8 +31,6 @@ func Load() Config {
 
 	config.Environment = cast.ToString(getOrReturnDefault("ENVIRONMENT", EnvDevelop))
 	config.LogLevel = cast.ToString(getOrReturnDefault("LOG_LEVEL", "debug"))
-	config.BaseCDN = cast.ToString(
-		getOrReturnDefault("BASE_CDN", "https://voxe-cdn.s3.eu-north-1.amazonaws.com"))
 
 	config.RPCPort = cast.ToString(getOrReturnDefault("RPC_PORT", ":9100"))
 
