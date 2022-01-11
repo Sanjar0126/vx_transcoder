@@ -1,0 +1,43 @@
+version: "1"
+packages:
+  - path: "./storage/sqlc"
+    queries: "./storage/queries"
+    schema: "./migrations"
+    emit_json_tags: true
+    emit_prepared_queries: false
+    emit_interface: false
+    emit_exact_table_names: false
+overrides:
+  - db_type: "pg_catalog.varchar"
+    go_type:
+      type: "string"
+      pointer: true
+    nullable: true
+  - db_type: "text"
+    go_type:
+      type: "string"
+      pointer: true
+    nullable: true
+  - db_type: "pg_catalog.bool"
+    go_type:
+      type: "bool"
+      pointer: true
+    nullable: true
+  - db_type: "pg_catalog.float8"
+    go_type:
+      type: "float64"
+      pointer: true
+    nullable: true
+  - db_type: "pg_catalog.int4"
+    go_type:
+      type: "int32"
+      pointer: true
+    nullable: true
+  - db_type: "pg_catalog.int8"
+    go_type:
+      type: "int64"
+      pointer: true
+    nullable: true
+  - go_type: "github.com/abdukhashimov/mybron.uz/storage/custom.Time"
+    db_type: "pg_catalog.timestamp"
+    nullable: true
