@@ -14,12 +14,6 @@ type Config struct {
 	LogLevel    string
 	BaseCDN     string
 
-	MongoDBHost     string
-	MongoDBPassword string
-	MongoDBDatabase string
-	MongoDBUser     string
-	MongoDBPort     int
-
 	RPCPort string
 }
 
@@ -40,14 +34,6 @@ func Load() Config {
 	config.LogLevel = cast.ToString(getOrReturnDefault("LOG_LEVEL", "debug"))
 	config.BaseCDN = cast.ToString(
 		getOrReturnDefault("BASE_CDN", "https://voxe-cdn.s3.eu-north-1.amazonaws.com"))
-
-	config.MongoDBHost = cast.ToString(getOrReturnDefault("MONGO_DB_HOST", "localhost"))
-	config.MongoDBPort = cast.ToInt(getOrReturnDefault("MONGO_DB_PORT", "27017"))
-
-	config.MongoDBDatabase = cast.ToString(
-		getOrReturnDefault("MONGO_DB_DATABASE", "content_service_new"))
-	config.MongoDBUser = cast.ToString(getOrReturnDefault("MONGODB_USER", "mongo"))
-	config.MongoDBPassword = cast.ToString(getOrReturnDefault("MONGODB_PASSWORD", "mongo"))
 
 	config.RPCPort = cast.ToString(getOrReturnDefault("RPC_PORT", ":9100"))
 
