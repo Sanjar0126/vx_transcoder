@@ -9,4 +9,13 @@ var (
 	LangEn                 = "en"
 	ContentServicePort     = 9100
 	RabbitMQPort           = 5672
+
+	StagesMatrix = map[string]string{
+		"new":      "info",
+		"info":     "audio",
+		"audio":    "video",
+		"video":    "subtitle",
+		"subtitle": "master",
+		"master":   "upload",
+	}
 )
