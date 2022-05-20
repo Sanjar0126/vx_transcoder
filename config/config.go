@@ -19,14 +19,6 @@ type Config struct {
 	BucketName     string
 	Region         string
 
-	RabbitMQUser     string
-	RabbitMQPassword string
-	RabbitMQHost     string
-	RabbitMQPort     int
-
-	ContentServiceHost string
-	ContentServicePort int
-
 	GpuTranscode bool
 
 	AwsRegion        string
@@ -66,60 +58,47 @@ func Load() Config { //nolint
 
 	config := Config{}
 
-	config.Environment = cast.ToString(getOrReturnDefault("ENVIRONMENT", EnvDevelop))
-	config.LogLevel = cast.ToString(getOrReturnDefault("LOG_LEVEL", "debug"))
+	config.Environment = cast.ToString(env("ENVIRONMENT", EnvDevelop))
+	config.LogLevel = cast.ToString(env("LOG_LEVEL", "debug"))
 
-	config.RPCPort = cast.ToString(getOrReturnDefault("RPC_PORT", ":9112"))
+	config.RPCPort = cast.ToString(env("RPC_PORT", ":9112"))
 
 	// GPU transcoding option
-	config.GpuTranscode = cast.ToBool(getOrReturnDefault("GPU_TRANSCODE", true))
+	config.GpuTranscode = cast.ToBool(env("GPU_TRANSCODE", true))
 
-	config.Region = cast.ToString(getOrReturnDefault("BUCKET_REGION", "eu-north-1"))
-	config.TempBucketName = cast.ToString(getOrReturnDefault("TEMP_BUCKET_NAME", "voxe-temp-1"))
-	config.BucketName = cast.ToString(getOrReturnDefault("BUCKET_NAME", "voxe-cdn"))
+	config.Region = cast.ToString(env("BUCKET_REGION", "eu-north-1"))
+	config.TempBucketName = cast.ToString(env("TEMP_BUCKET_NAME", "voxe-temp-1"))
+	config.BucketName = cast.ToString(env("BUCKET_NAME", "voxe-cdn"))
 
-	config.VideoExtension = cast.ToString(getOrReturnDefault("VIDEO_EXTENSION", "m3u8"))
-	config.FFmpegCPU = cast.ToString(getOrReturnDefault("FFMPEG_CPU", "ffmpeg_binary"))
-	config.FFprobeCPU = cast.ToString(getOrReturnDefault("FFPROBE_CPU", "ffprobe_binary"))
-	config.FFmpegGPU = cast.ToString(getOrReturnDefault("FFMPEG_GPU", "/usr/local/bin/ffmpeg"))
-	config.FFprobeGPU = cast.ToString(getOrReturnDefault("FFMPROBE_GPU", "/usr/local/bin/ffprobe"))
+	config.VideoExtension = cast.ToString(env("VIDEO_EXTENSION", "m3u8"))
+	config.FFmpegCPU = cast.ToString(env("FFMPEG_CPU", "ffmpeg_binary"))
+	config.FFprobeCPU = cast.ToString(env("FFPROBE_CPU", "ffprobe_binary"))
+	config.FFmpegGPU = cast.ToString(env("FFMPEG_GPU", "/usr/local/bin/ffmpeg"))
+	config.FFprobeGPU = cast.ToString(env("FFMPROBE_GPU", "/usr/local/bin/ffprobe"))
 
 	// aws credentials
-	config.AwsRegion = cast.ToString(getOrReturnDefault("AWS_REGION", "eu-north-1"))
-	config.AwsID = cast.ToString(getOrReturnDefault("AWS_ID", "sample_aws_id"))
-	config.AwsSecret = cast.ToString(getOrReturnDefault("AWS_SECRET", "sample_aws_secret"))
-	config.AwsEC2InstanceID = cast.ToString(getOrReturnDefault("AWS_EC2_INSTANCE_ID",
-		"aws_ec2_instance_id"))
+	config.AwsRegion = cast.ToString(env("AWS_REGION", "eu-north-1"))
+	config.AwsID = cast.ToString(env("AWS_ID", "sample_aws_id"))
+	config.AwsSecret = cast.ToString(env("AWS_SECRET", "sample_aws_secret"))
+	config.AwsEC2InstanceID = cast.ToString(env("AWS_EC2_INSTANCE_ID", "aws_ec2_instance_id"))
 
-	// rabbit-mq credentials
-	config.RabbitMQHost = cast.ToString(getOrReturnDefault("RABBIT_MQ_HOST", "localhost"))
-	config.RabbitMQPassword = cast.ToString(getOrReturnDefault("RABBIT_MQ_PASSWORD", "guest"))
-	config.RabbitMQUser = cast.ToString(getOrReturnDefault("RABBIT_MQ_USER", "guest"))
-	config.RabbitMQPort = cast.ToInt(getOrReturnDefault("RABBIT_MQ_PORT", RabbitMQPort))
-
-	// content-service credentials
-	config.ContentServiceHost = cast.ToString(getOrReturnDefault("CONTENT_SERVICE_HOST",
-		"localhost"))
-	config.ContentServicePort = cast.ToInt(getOrReturnDefault("CONTENT_SERVICE_PORT",
-		ContentServicePort))
-
-	config.OutputDirectory = cast.ToString(getOrReturnDefault("OUTPUT_DIRECTORY",
+	config.OutputDirectory = cast.ToString(env("OUTPUT_DIRECTORY",
 		"/home/samandar/Downloads/transcoded"))
-	config.InputDirectory = cast.ToString(getOrReturnDefault("INPUT_DICTORY",
+	config.InputDirectory = cast.ToString(env("INPUT_DICTORY",
 		"/home/samandar/Downloads/videos"))
 
-	config.MongoDBHost = cast.ToString(getOrReturnDefault("MONGO_DB_HOST", "localhost"))
-	config.MongoDBPort = cast.ToInt(getOrReturnDefault("MONGO_DB_PORT", "27017"))
+	config.MongoDBHost = cast.ToString(env("MONGO_DB_HOST", "localhost"))
+	config.MongoDBPort = cast.ToInt(env("MONGO_DB_PORT", "27017"))
 
-	config.MongoDBDatabase = cast.ToString(getOrReturnDefault("MONGO_DB_DATABASE",
+	config.MongoDBDatabase = cast.ToString(env("MONGO_DB_DATABASE",
 		"content_service"))
-	config.MongoDBUser = cast.ToString(getOrReturnDefault("MONGO_DB_USER", "mongo"))
-	config.MongoDBPassword = cast.ToString(getOrReturnDefault("MONGO_DB_PASSWORD", "mongo"))
+	config.MongoDBUser = cast.ToString(env("MONGO_DB_USER", "mongo"))
+	config.MongoDBPassword = cast.ToString(env("MONGO_DB_PASSWORD", "mongo"))
 
 	return config
 }
 
-func getOrReturnDefault(key string, defaultValue interface{}) interface{} {
+func env(key string, defaultValue interface{}) interface{} {
 	_, exists := os.LookupEnv(key)
 	if exists {
 		return os.Getenv(key)
