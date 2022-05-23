@@ -10,6 +10,13 @@ type SubtitleAPI struct {
 	log logger.Logger
 }
 
+func NewSubtitleAPI(cfg *config.Config, log logger.Logger) SubtitleAPI {
+	return SubtitleAPI{
+		cfg: cfg,
+		log: log,
+	}
+}
+
 func (s *SubtitleAPI) ExtractSubtitle() {
 
 }
