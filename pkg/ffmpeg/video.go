@@ -19,10 +19,6 @@ func NewVideoAPI(cfg *config.Config, log logger.Logger) VideoAPI {
 	}
 }
 
-func (v *VideoAPI) GetVideoWidthAndHeight() {
-
-}
-
 func (v *VideoAPI) GetVideoLayers(input string) ([]Streams, error) {
 	videoLayers, err := getLayers(v.cfg.ScriptsFolder, input, v.codecType)
 	if err != nil {
@@ -33,10 +29,6 @@ func (v *VideoAPI) GetVideoLayers(input string) ([]Streams, error) {
 	v.log.Info("video layers are retreived", logger.Any("videos", videoLayers))
 
 	return videoLayers, nil
-}
-
-func (v *VideoAPI) GetVideoDuration() {
-
 }
 
 func (v *VideoAPI) ConvertVideo() {
