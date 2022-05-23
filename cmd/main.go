@@ -8,7 +8,6 @@ import (
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/config"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/cronjob"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/logger"
-	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/transcode"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/storage"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/storage/db"
 	"google.golang.org/grpc"
@@ -35,8 +34,6 @@ func main() {
 		log.Error("Error while listening: %v", logger.Error(err))
 		panic(err)
 	}
-
-	_ = transcode.New(&cfg, log, storageDB)
 
 	c := cron.New()
 	newCronJob := cronjob.NewCronjob(log, cfg, c, storageDB)
