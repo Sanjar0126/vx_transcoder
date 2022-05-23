@@ -2,6 +2,7 @@ package transcoder
 
 import (
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/transcode/audio"
+	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/transcode/subtitle"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/transcode/video"
 )
 
@@ -16,15 +17,6 @@ type WorkerPools struct {
 	ObjectStorageJobs chan string
 }
 
-type SubtitleLayerReader interface {
-	ExtractInfos()
-}
-
-type SubtitleExtracter interface {
-	SubtitleLayerReader
-	ExtractSubtitles()
-}
-
 type ObjectUploader interface {
 	UploadToS3()
 }
@@ -37,7 +29,7 @@ type FileFolderGenerator interface {
 type Transcoder interface {
 	audio.AuidoExtracter
 	video.VideoExtracter
-	SubtitleExtracter
+	subtitle.SubtitleExtracter
 	ObjectUploader
 	FileFolderGenerator
 }
