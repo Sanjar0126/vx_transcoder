@@ -9,7 +9,7 @@ import (
 )
 
 type WorkerPools struct {
-	jobsMap map[string]struct{}
+	jobsMap map[string]struct{} // nolint
 
 	InfoJobs          chan string
 	FolderJobs        chan string
