@@ -1,5 +1,9 @@
 package ffmpeg
 
+type LayerOutput struct {
+	Streams []Streams `json:"streams"`
+}
+
 type Disposition struct {
 	Default         int `json:"default"`
 	Dub             int `json:"dub"`
