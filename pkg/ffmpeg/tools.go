@@ -6,11 +6,12 @@ import (
 	"os/exec"
 )
 
-func getLayers(scriptsPath, inputVideo, layerType string) ([]Streams, error) {
+func getLayers(scriptsPath, inputVideo, codecType string) ([]Streams, error) {
 	var (
-		layerOutput = LayerOutput{Streams: make([]Streams, 0)}
-
+		layerOutput         = LayerOutput{Streams: make([]Streams, 0)}
 		extractLayersScript = fmt.Sprintf("%s%s", scriptsPath, "/get_layers.sh")
+
+		index = 0
 	)
 
 	cmd, err := exec.Command("/bin/sh", extractLayersScript, inputVideo).Output()
@@ -23,5 +24,12 @@ func getLayers(scriptsPath, inputVideo, layerType string) ([]Streams, error) {
 		return layerOutput.Streams, err
 	}
 
-	return layerOutput.Streams, nil
+	for _, stream := range layerOutput.Streams {
+		if stream.CodecType == codecType {
+			layerOutput.Streams[index] = stream
+			index++
+		}
+	}
+
+	return layerOutput.Streams[:index], nil
 }
