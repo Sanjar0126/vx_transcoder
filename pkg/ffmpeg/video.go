@@ -10,6 +10,13 @@ type VideoAPI struct {
 	log logger.Logger
 }
 
+func NewVideoAPI(cfg *config.Config, log logger.Logger) VideoAPI {
+	return VideoAPI{
+		cfg: cfg,
+		log: log,
+	}
+}
+
 func (v *VideoAPI) GetVideoWidthAndHeight() {
 
 }
