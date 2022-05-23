@@ -26,11 +26,11 @@ func (v *VideoAPI) GetVideoWidthAndHeight() {
 func (v *VideoAPI) GetVideoLayers(input string) ([]Streams, error) {
 	videoLayers, err := getLayers(v.cfg.ScriptsFolder, input, v.codecType)
 	if err != nil {
-		v.log.Error("failed to retrieve audio layers", logger.Error(err))
+		v.log.Error("failed to retrieve video layers", logger.Error(err))
 		return nil, err
 	}
 
-	v.log.Info("audio layers are retreived", logger.Any("audios", videoLayers))
+	v.log.Info("video layers are retreived", logger.Any("videos", videoLayers))
 
 	return videoLayers, nil
 }
