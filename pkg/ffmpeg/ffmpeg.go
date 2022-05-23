@@ -16,35 +16,3 @@ func NewToolFfmpeg(cfg *config.Config, log logger.Logger) ToolFfmpeg {
 		log: log,
 	}
 }
-
-func (t *ToolFfmpeg) GetVideoWidthAndHeight() {
-
-}
-
-func (t *ToolFfmpeg) GetVideoLayers() {
-
-}
-
-func (t *ToolFfmpeg) GetAudioLayers() {
-
-}
-
-func (t *ToolFfmpeg) GetSubtitleLayers() {
-
-}
-
-func (t *ToolFfmpeg) GetVideoDuration() {
-
-}
-
-func (t *ToolFfmpeg) ConvertVideo() {
-
-}
-
-func (t *ToolFfmpeg) ExtractAudio() {
-
-}
-
-func (t *ToolFfmpeg) ExtractSubtitle() {
-
-}
