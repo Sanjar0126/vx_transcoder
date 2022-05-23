@@ -7,7 +7,7 @@ import (
 )
 
 type WorkerPools struct {
-	jobMap map[string]struct{}
+	jobsMap map[string]struct{}
 
 	InfoJobs          chan string
 	FolderJobs        chan string
