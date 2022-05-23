@@ -1,6 +1,9 @@
 package transcoder
 
-import "gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/transcode/video"
+import (
+	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/transcode/audio"
+	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/transcode/video"
+)
 
 type WorkerPools struct {
 	jobMap map[string]struct{}
@@ -11,15 +14,6 @@ type WorkerPools struct {
 	VideoJobs         chan string
 	SubtitleJobs      chan string
 	ObjectStorageJobs chan string
-}
-
-type AudioLayerReader interface {
-	ExtractInfos()
-}
-
-type AuidoExtracter interface {
-	ExtractAudios()
-	AudioLayerReader
 }
 
 type SubtitleLayerReader interface {
@@ -41,7 +35,7 @@ type FileFolderGenerator interface {
 }
 
 type Transcoder interface {
-	AuidoExtracter
+	audio.AuidoExtracter
 	video.VideoExtracter
 	SubtitleExtracter
 	ObjectUploader
