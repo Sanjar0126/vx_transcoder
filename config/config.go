@@ -79,8 +79,6 @@ func Load() Config { //nolint
 		"%s%s", absPath, "/scripts",
 	)))
 
-	fmt.Println(config.ScriptsFolder)
-
 	config.OutputDir = cast.ToString(env("OUTPUT_DIRECTORY", "/home/samandar/Downloads/transcoded"))
 	config.InputDir = cast.ToString(env("INPUT_DICTORY", "/home/samandar/Downloads/videos"))
 
