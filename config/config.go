@@ -63,35 +63,27 @@ func Load() Config { //nolint
 
 	config.RPCPort = cast.ToString(env("RPC_PORT", ":9112"))
 
-	// GPU transcoding option
 	config.GpuTranscode = cast.ToBool(env("GPU_TRANSCODE", true))
 
 	config.Region = cast.ToString(env("BUCKET_REGION", "eu-north-1"))
 	config.TempBucketName = cast.ToString(env("TEMP_BUCKET_NAME", "voxe-temp-1"))
 	config.BucketName = cast.ToString(env("BUCKET_NAME", "voxe-cdn"))
 
-	config.VideoExtension = cast.ToString(env("VIDEO_EXTENSION", "m3u8"))
 	config.FFmpegCPU = cast.ToString(env("FFMPEG_CPU", "ffmpeg_binary"))
 	config.FFprobeCPU = cast.ToString(env("FFPROBE_CPU", "ffprobe_binary"))
 	config.FFmpegGPU = cast.ToString(env("FFMPEG_GPU", "/usr/local/bin/ffmpeg"))
 	config.FFprobeGPU = cast.ToString(env("FFMPROBE_GPU", "/usr/local/bin/ffprobe"))
 
-	// aws credentials
-	config.AwsRegion = cast.ToString(env("AWS_REGION", "eu-north-1"))
 	config.AwsID = cast.ToString(env("AWS_ID", "sample_aws_id"))
 	config.AwsSecret = cast.ToString(env("AWS_SECRET", "sample_aws_secret"))
-	config.AwsEC2InstanceID = cast.ToString(env("AWS_EC2_INSTANCE_ID", "aws_ec2_instance_id"))
 
 	config.OutputDirectory = cast.ToString(env("OUTPUT_DIRECTORY",
 		"/home/samandar/Downloads/transcoded"))
-	config.InputDirectory = cast.ToString(env("INPUT_DICTORY",
-		"/home/samandar/Downloads/videos"))
+	config.InputDirectory = cast.ToString(env("INPUT_DICTORY", "/home/samandar/Downloads/videos"))
 
 	config.MongoDBHost = cast.ToString(env("MONGO_DB_HOST", "localhost"))
 	config.MongoDBPort = cast.ToInt(env("MONGO_DB_PORT", "27017"))
-
-	config.MongoDBDatabase = cast.ToString(env("MONGO_DB_DATABASE",
-		"content_service"))
+	config.MongoDBDatabase = cast.ToString(env("MONGO_DB_DATABASE", "content_service"))
 	config.MongoDBUser = cast.ToString(env("MONGO_DB_USER", "mongo"))
 	config.MongoDBPassword = cast.ToString(env("MONGO_DB_PASSWORD", "mongo"))
 
