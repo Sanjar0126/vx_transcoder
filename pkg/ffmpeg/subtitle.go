@@ -22,11 +22,11 @@ func NewSubtitleAPI(cfg *config.Config, log logger.Logger) SubtitleAPI {
 func (s *SubtitleAPI) GetSubtitleLayers(input string) ([]Streams, error) {
 	subtitleLayers, err := getLayers(s.cfg.ScriptsFolder, input, s.codecType)
 	if err != nil {
-		s.log.Error("failed to retrieve audio layers", logger.Error(err))
+		s.log.Error("failed to retrieve subtitle layers", logger.Error(err))
 		return nil, err
 	}
 
-	s.log.Info("audio layers are retreived", logger.Any("audios", subtitleLayers))
+	s.log.Info("subtitle layers are retreived", logger.Any("subtitles", subtitleLayers))
 
 	return subtitleLayers, nil
 }
