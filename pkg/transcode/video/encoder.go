@@ -5,7 +5,7 @@ import (
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/logger"
 )
 
-type VideoEncoder struct {
+type VideoObject struct {
 	cfg *config.Config
 	log logger.Logger
 }
@@ -20,21 +20,21 @@ type VideoExtracter interface {
 	ConvertVideos(inputType, outputType string)
 }
 
-func NewVideoEncoder(cfg *config.Config, log logger.Logger) VideoExtracter {
-	return &VideoEncoder{
+func NewVideoExtracter(cfg *config.Config, log logger.Logger) VideoExtracter {
+	return &VideoObject{
 		cfg: cfg,
 		log: log,
 	}
 }
 
-func (v *VideoEncoder) ExtractInfos() {
+func (v *VideoObject) ExtractInfos() {
 	panic("not implemented yet")
 }
 
-func (v *VideoEncoder) ExtractDurations() {
+func (v *VideoObject) ExtractDurations() {
 	panic("not implemented yet")
 }
 
-func (v *VideoEncoder) ConvertVideos(inputType, outputType string) {
+func (v *VideoObject) ConvertVideos(inputType, outputType string) {
 	panic("not implemented yet")
 }
