@@ -8,17 +8,28 @@ import (
 type AudioAPI struct {
 	cfg *config.Config
 	log logger.Logger
+
+	codecType string
 }
 
 func NewAudioAPI(cfg *config.Config, log logger.Logger) AudioAPI {
 	return AudioAPI{
-		cfg: cfg,
-		log: log,
+		cfg:       cfg,
+		log:       log,
+		codecType: "audio",
 	}
 }
 
-func (a *AudioAPI) GetAudioLayers() {
+func (a *AudioAPI) GetAudioLayers(input string) ([]Streams, error) {
+	audioLayers, err := getLayers(a.cfg.ScriptsFolder, input, a.codecType)
+	if err != nil {
+		a.log.Error("failed to retrieve audio layers", logger.Error(err))
+		return nil, err
+	}
 
+	a.log.Info("audio layers are retreived", logger.Any("audios", audioLayers))
+
+	return audioLayers, nil
 }
 
 func (a *AudioAPI) ExtractAudio() {
