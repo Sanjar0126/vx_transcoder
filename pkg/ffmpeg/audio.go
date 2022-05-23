@@ -10,6 +10,13 @@ type AudioAPI struct {
 	log logger.Logger
 }
 
+func NewAudioAPI(cfg *config.Config, log logger.Logger) AudioAPI {
+	return AudioAPI{
+		cfg: cfg,
+		log: log,
+	}
+}
+
 func (a *AudioAPI) GetAudioLayers() {
 
 }
