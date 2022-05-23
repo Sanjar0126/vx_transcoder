@@ -27,9 +27,9 @@ func NewAudioExtracter(cfg *config.Config, log logger.Logger) AuidoExtracter {
 }
 
 func (a *AudioObject) ExtractInfos() {
-
+	panic("not implemented yet")
 }
 
 func (a *AudioObject) ExtractAudios() {
-
+	panic("not implemented yet")
 }
