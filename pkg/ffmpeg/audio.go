@@ -20,7 +20,7 @@ func NewAudioAPI(cfg *config.Config, log logger.Logger) AudioAPI {
 	}
 }
 
-func (a *AudioAPI) GetAudioLayers(input string) ([]Streams, error) {
+func (a *AudioAPI) GetAudioLayers(input string) ([]Stream, error) {
 	audioLayers, err := getLayers(a.cfg.ScriptsFolder, input, a.codecType)
 	if err != nil {
 		a.log.Error("failed to retrieve audio layers", logger.Error(err))

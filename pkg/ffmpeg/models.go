@@ -1,7 +1,7 @@
 package ffmpeg
 
 type LayerOutput struct {
-	Streams []Streams `json:"streams"`
+	Streams []Stream `json:"streams"`
 }
 
 type Disposition struct {
@@ -31,7 +31,7 @@ type Tags struct {
 	Mimetype string `json:"mimetype"`
 }
 
-type Streams struct {
+type Stream struct {
 	Index              int         `json:"index"`
 	CodecName          string      `json:"codec_name"`
 	CodecLongName      string      `json:"codec_long_name"`

@@ -19,7 +19,7 @@ func NewVideoAPI(cfg *config.Config, log logger.Logger) VideoAPI {
 	}
 }
 
-func (v *VideoAPI) GetVideoLayers(input string) ([]Streams, error) {
+func (v *VideoAPI) GetVideoLayers(input string) ([]Stream, error) {
 	videoLayers, err := getLayers(v.cfg.ScriptsFolder, input, v.codecType)
 	if err != nil {
 		v.log.Error("failed to retrieve video layers", logger.Error(err))
@@ -31,6 +31,7 @@ func (v *VideoAPI) GetVideoLayers(input string) ([]Streams, error) {
 	return videoLayers, nil
 }
 
-func (v *VideoAPI) ConvertVideo() {
+func (v *VideoAPI) ConvertVideo(input Stream) error {
 
+	return nil
 }

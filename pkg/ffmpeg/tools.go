@@ -6,9 +6,9 @@ import (
 	"os/exec"
 )
 
-func getLayers(scriptsPath, inputVideo, codecType string) ([]Streams, error) {
+func getLayers(scriptsPath, inputVideo, codecType string) ([]Stream, error) {
 	var (
-		layerOutput         = LayerOutput{Streams: make([]Streams, 0)}
+		layerOutput         = LayerOutput{Streams: make([]Stream, 0)}
 		extractLayersScript = fmt.Sprintf("%s%s", scriptsPath, "/get_layers.sh")
 
 		index = 0

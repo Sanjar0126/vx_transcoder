@@ -19,7 +19,7 @@ func NewSubtitleAPI(cfg *config.Config, log logger.Logger) SubtitleAPI {
 	}
 }
 
-func (s *SubtitleAPI) GetSubtitleLayers(input string) ([]Streams, error) {
+func (s *SubtitleAPI) GetSubtitleLayers(input string) ([]Stream, error) {
 	subtitleLayers, err := getLayers(s.cfg.ScriptsFolder, input, s.codecType)
 	if err != nil {
 		s.log.Error("failed to retrieve subtitle layers", logger.Error(err))
