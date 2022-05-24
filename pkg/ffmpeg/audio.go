@@ -14,18 +14,18 @@ type AudioAPI struct {
 	cfg *config.Config
 	log logger.Logger
 
-	codecType         string
-	defaultBitrate    string
-	defaultAudioChunk string
+	codecType        string
+	defaultBitrate   string
+	defaultChunkSize string
 }
 
 func NewAudioAPI(cfg *config.Config, log logger.Logger) AudioAPI {
 	return AudioAPI{
-		cfg:               cfg,
-		log:               log,
-		codecType:         "audio",
-		defaultBitrate:    "128k",
-		defaultAudioChunk: "5",
+		cfg:              cfg,
+		log:              log,
+		codecType:        "audio",
+		defaultBitrate:   "128k",
+		defaultChunkSize: "5",
 	}
 }
 
@@ -52,11 +52,11 @@ func (a *AudioAPI) ExtractAudio(input, lang string, inputObject Stream) error {
 	out, err := exec.Command(
 		"/bin/sh",
 		extractAudioScript,
-		input,
-		a.defaultBitrate,
-		itoa.Itoa(inputObject.Index),
-		a.defaultAudioChunk,
-		outputPath,
+		input,                        // input path
+		a.defaultBitrate,             // audio bitrate
+		itoa.Itoa(inputObject.Index), // index of stream
+		a.defaultChunkSize,           // chunk size
+		outputPath,                   // where to save the file
 	).Output()
 
 	if err != nil {
