@@ -5,7 +5,6 @@ segment_time=$3
 output_path=$4
 
 echo $input_video
-echo $lang
 echo $track_number
 echo $segment_time
 echo $output_path
