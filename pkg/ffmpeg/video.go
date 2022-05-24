@@ -6,16 +6,19 @@ import (
 )
 
 type VideoAPI struct {
-	cfg       *config.Config
-	log       logger.Logger
-	codecType string
+	cfg *config.Config
+	log logger.Logger
+
+	codecType         string
+	defaultAudioChunk string
 }
 
 func NewVideoAPI(cfg *config.Config, log logger.Logger) VideoAPI {
 	return VideoAPI{
-		cfg:       cfg,
-		log:       log,
-		codecType: "video",
+		cfg:               cfg,
+		log:               log,
+		codecType:         "video",
+		defaultAudioChunk: "5",
 	}
 }
 
