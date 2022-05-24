@@ -1,8 +1,8 @@
 #!/bin/bash
 input_video=$1
-track_number=$3
-segment_time=$4
-output_path=$5
+track_number=$2
+segment_time=$3
+output_path=$4
 
 echo $input_video
 echo $lang
@@ -10,8 +10,8 @@ echo $track_number
 echo $segment_time
 echo $output_path
 
-output=$output_path/subtitles/$lang/subtitle.vtt
-segment_output=$output_path/subtitles/$lang
+output=$output_path/subtitle.vtt
+segment_output=$output_path
 
 ffmpeg -y -i $input_video -map 0:s:$track_number -c:s webvtt $output
 

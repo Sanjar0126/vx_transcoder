@@ -51,10 +51,10 @@ func (s *SubtitleAPI) ExtractSubtitle(input, lang string, inputObject Stream) er
 	out, err := exec.Command(
 		"/bin/sh",
 		extractSubtitleScript,
-		input,
-		itoa.Itoa(inputObject.Index),
-		s.defaultChunkSize,
-		outputPath,
+		input,                        // input path
+		itoa.Itoa(inputObject.Index), // index of stream
+		s.defaultChunkSize,           // chunk size
+		outputPath,                   // where to save the output
 	).Output()
 
 	if err != nil {
