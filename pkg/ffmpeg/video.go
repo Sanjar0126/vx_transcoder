@@ -41,7 +41,7 @@ func (v *VideoAPI) GetVideoLayers(input string) ([]Stream, error) {
 type ResizeVideoArgs struct {
 	Input       string
 	Width       string
-	Bitrate     string
+	BitRate     string
 	InputObject Stream
 }
 
@@ -59,7 +59,7 @@ func (v *VideoAPI) ResizeVideo(args ResizeVideoArgs) error {
 		"/bin/sh",
 		resizeVideoScript,
 		resizingWidthHeight,
-		args.Bitrate,
+		args.BitRate,
 		v.defaultChunkSize,
 		outputPath,
 	).Output()
