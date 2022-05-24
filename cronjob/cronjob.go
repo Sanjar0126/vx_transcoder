@@ -17,7 +17,6 @@ type Cronjob struct {
 
 func NewCronjob(log logger.Logger, cfg config.Config,
 	cron *cron.Cron, db storage.StorageI) *Cronjob {
-
 	return &Cronjob{
 		cfg:     cfg,
 		log:     log,
