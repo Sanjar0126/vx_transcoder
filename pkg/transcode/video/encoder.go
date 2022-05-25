@@ -2,22 +2,24 @@ package video
 
 import (
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/config"
+	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/ffmpeg"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/logger"
 )
 
 type VideoObject struct {
 	cfg *config.Config
 	log logger.Logger
+
+	video ffmpeg.VideoAPI
 }
 
 type VideoLayerReader interface {
-	ExtractInfos()
-	ExtractDurations()
+	ExtractInfos(input string) ([]ffmpeg.Stream, error)
 }
 
 type VideoExtracter interface {
 	VideoLayerReader
-	ConvertVideos(inputType, outputType string)
+	ResizeVideo(args ffmpeg.ResizeVideoArgs) error
 }
 
 func NewVideoExtracter(cfg *config.Config, log logger.Logger) VideoExtracter {
@@ -27,14 +29,22 @@ func NewVideoExtracter(cfg *config.Config, log logger.Logger) VideoExtracter {
 	}
 }
 
-func (v *VideoObject) ExtractInfos() {
-	panic("not implemented yet")
+func (v *VideoObject) ExtractInfos(input string) ([]ffmpeg.Stream, error) {
+	streams, err := v.video.GetVideoLayers(input)
+	if err != nil {
+		v.log.Info("failed to retrieve info about video layers", logger.Error(err))
+		return streams, err
+	}
+
+	return streams, nil
 }
 
-func (v *VideoObject) ExtractDurations() {
-	panic("not implemented yet")
-}
+func (v *VideoObject) ResizeVideo(args ffmpeg.ResizeVideoArgs) error {
+	err := v.video.ResizeVideo(args)
+	if err != nil {
+		v.log.Error("failed to resize video", logger.Error(err))
+		return err
+	}
 
-func (v *VideoObject) ConvertVideos(inputType, outputType string) {
-	panic("not implemented yet")
+	return nil
 }
