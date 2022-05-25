@@ -2,12 +2,13 @@ package folder
 
 import (
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/config"
+	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/ffmpeg"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/logger"
 )
 
 type FileFolderGenerator interface {
-	GenerateFilesDirecetory()
-	GenerateMasterPlaylist()
+	GenerateFilesDirecetory(input string, inputOjects []ffmpeg.Stream) error
+	GenerateMasterPlaylist(input string, inputObjects []ffmpeg.Stream) error
 }
 
 type FolderObject struct {
@@ -22,10 +23,10 @@ func NewFolderGenerator(cfg *config.Config, log logger.Logger) FileFolderGenerat
 	}
 }
 
-func (f *FolderObject) GenerateFilesDirecetory() {
-
+func (f *FolderObject) GenerateFilesDirecetory(input string, inputObjects []ffmpeg.Stream) error {
+	return nil
 }
 
-func (f *FolderObject) GenerateMasterPlaylist() {
-
+func (f *FolderObject) GenerateMasterPlaylist(input string, inputObjects []ffmpeg.Stream) error {
+	return nil
 }
