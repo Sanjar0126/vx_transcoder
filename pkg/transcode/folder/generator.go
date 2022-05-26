@@ -7,7 +7,7 @@ import (
 )
 
 type FileFolderGenerator interface {
-	GenerateFilesDirecetory(input string, inputOjects []ffmpeg.Stream) error
+	GenerateFilesDirectory(input string, inputObjects []ffmpeg.Stream) error
 	GenerateMasterPlaylist(input string, inputObjects []ffmpeg.Stream) error
 }
 
@@ -23,7 +23,7 @@ func NewFolderGenerator(cfg *config.Config, log logger.Logger) FileFolderGenerat
 	}
 }
 
-func (f *FolderObject) GenerateFilesDirecetory(input string, inputObjects []ffmpeg.Stream) error {
+func (f *FolderObject) GenerateFilesDirectory(input string, inputObjects []ffmpeg.Stream) error {
 	return nil
 }
 
