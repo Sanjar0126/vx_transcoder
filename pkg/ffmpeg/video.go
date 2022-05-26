@@ -1,6 +1,7 @@
 package ffmpeg
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"os/exec"
@@ -57,7 +58,9 @@ func (v *VideoAPI) ResizeVideo(args ResizeVideoArgs) error {
 		resizingWidthHeight = fmt.Sprintf("%s:-2", args.Width)
 	)
 
-	out, err := exec.Command(
+	fmt.Println(outputPath)
+
+	cmd := exec.Command(
 		"/bin/sh",
 		resizeVideoScript,
 		args.Input,
@@ -65,14 +68,20 @@ func (v *VideoAPI) ResizeVideo(args ResizeVideoArgs) error {
 		args.BitRate,
 		v.defaultChunkSize,
 		outputPath,
-	).Output()
+	)
+
+	var stdout, stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	cmd.Stdout = &stdout
+	err := cmd.Run()
+	fmt.Println(string(stderr.Bytes()))
 
 	if err != nil {
 		v.log.Error("failed to extract video", logger.Error(err))
 		return errors.New("failed to extract video")
 	}
 
-	v.log.Info("extract output", logger.String("output", string(out)))
+	v.log.Info("extract output", logger.String("output", ""))
 
 	return nil
 }

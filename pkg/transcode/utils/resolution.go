@@ -57,7 +57,7 @@ func GetLang(input string, idx int) string {
 
 func GetWidth(stream fffmpeg.Stream) ([]int, []int) {
 	var (
-		width   = []int{320, 640, 854, 1280, 1960}
+		width   = []int{320, 640, 854, 1280, 1920}
 		height  = []int{240, 360, 480, 720, 1080}
 		ids     []int
 		removed = false
