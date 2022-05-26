@@ -22,10 +22,11 @@ type VideoExtracter interface {
 	ResizeVideo(args ffmpeg.ResizeVideoArgs) error
 }
 
-func NewVideoExtracter(cfg *config.Config, log logger.Logger) VideoExtracter {
+func NewVideoExtractor(cfg *config.Config, log logger.Logger) VideoExtracter {
 	return &VideoObject{
-		cfg: cfg,
-		log: log,
+		cfg:   cfg,
+		log:   log,
+		video: ffmpeg.NewVideoAPI(cfg, log),
 	}
 }
 

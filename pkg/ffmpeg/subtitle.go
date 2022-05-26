@@ -3,8 +3,8 @@ package ffmpeg
 import (
 	"errors"
 	"fmt"
-	"internal/itoa"
 	"os/exec"
+	"strconv"
 
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/config"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/logger"
@@ -34,14 +34,14 @@ func (s *SubtitleAPI) GetSubtitleLayers(input string) ([]Stream, error) {
 		return nil, err
 	}
 
-	s.log.Info("subtitle layers are retreived", logger.Any("subtitles", subtitleLayers))
+	s.log.Info("subtitle layers are retrieved")
 
 	return subtitleLayers, nil
 }
 
-func (s *SubtitleAPI) ExtractSubtitle(input, lang string, inputObject Stream) error {
+func (s *SubtitleAPI) ExtractSubtitle(input, lang, slug string, index int) error {
 	var (
-		outputPath            = fmt.Sprintf("%s/%s/subtitles/%s", s.cfg.OutputDir, input, lang)
+		outputPath            = fmt.Sprintf("%s/%s/subtitles/%s", s.cfg.OutputDir, slug, lang)
 		extractSubtitleScript = fmt.Sprintf(
 			"%s%s", s.cfg.ScriptsFolder, "/ffmpeg/extract_subtitle.sh")
 	)
@@ -51,10 +51,10 @@ func (s *SubtitleAPI) ExtractSubtitle(input, lang string, inputObject Stream) er
 	out, err := exec.Command(
 		"/bin/sh",
 		extractSubtitleScript,
-		input,                        // input path
-		itoa.Itoa(inputObject.Index), // index of stream
-		s.defaultChunkSize,           // chunk size
-		outputPath,                   // where to save the output
+		input,               // input path
+		strconv.Itoa(index), // index of stream
+		s.defaultChunkSize,  // chunk size
+		outputPath,          // where to save the output
 	).Output()
 
 	if err != nil {

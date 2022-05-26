@@ -11,11 +11,15 @@ var (
 	RabbitMQPort           = 5672
 
 	StagesMatrix = map[string]string{
-		"new":      "info",
 		"info":     "audio",
-		"audio":    "video",
-		"video":    "subtitle",
-		"subtitle": "master",
+		"new":      "audio",
+		"audio":    "subtitle",
+		"subtitle": "video",
+		"video":    "master",
 		"master":   "upload",
 	}
+
+	StagesArray = []string{"new", "info", "audio", "video", "subtitle", "master"}
+
+	JobCount = 2
 )

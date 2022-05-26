@@ -9,7 +9,7 @@ import (
 func getLayers(scriptsPath, inputVideo, codecType string) ([]Stream, error) {
 	var (
 		layerOutput         = LayerOutput{Streams: make([]Stream, 0)}
-		extractLayersScript = fmt.Sprintf("%s%s", scriptsPath, "/get_layers.sh")
+		extractLayersScript = fmt.Sprintf("%s%s", scriptsPath, "/ffmpeg/get_layers.sh")
 
 		index = 0
 	)

@@ -12,7 +12,7 @@ var (
 
 type UploadedVideoI interface {
 	Create(ctx context.Context, req models.UploadedVideoFull) (string, error)
-	Get(ctx context.Context, id string) (*models.UploadedVideo, error)
+	Get(ctx context.Context, id string) (*models.UploadedVideoFull, error)
 	Delete(ctx context.Context, id string) error
 	Update(ctx context.Context, req models.UploadVideoRequest) error
 	GetAll(ctx context.Context,

@@ -3,8 +3,8 @@ package ffmpeg
 import (
 	"errors"
 	"fmt"
-	"internal/itoa"
 	"os/exec"
+	"strconv"
 
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/config"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/logger"
@@ -36,27 +36,27 @@ func (a *AudioAPI) GetAudioLayers(input string) ([]Stream, error) {
 		return nil, err
 	}
 
-	a.log.Info("audio layers are retreived", logger.Any("audios", audioLayers))
+	a.log.Info("audio layers are retrieved")
 
 	return audioLayers, nil
 }
 
-func (a *AudioAPI) ExtractAudio(input, lang string, inputObject Stream) error {
+func (a *AudioAPI) ExtractAudio(input, lang, slug string, index int) error {
 	var (
-		outputPath         = fmt.Sprintf("%s/%s/audios/%s", a.cfg.OutputDir, input, lang)
+		outputPath         = fmt.Sprintf("%s/%s/audios/%s", a.cfg.OutputDir, slug, lang)
 		extractAudioScript = fmt.Sprintf("%s%s", a.cfg.ScriptsFolder, "/ffmpeg/extract_audio.sh")
 	)
 
 	a.log.Info("extracting audio info", logger.String("input", input), logger.String("lang", lang))
 
-	out, err := exec.Command(
+	cmd, err := exec.Command(
 		"/bin/sh",
 		extractAudioScript,
-		input,                        // input path
-		a.defaultBitrate,             // audio bitrate
-		itoa.Itoa(inputObject.Index), // index of stream
-		a.defaultChunkSize,           // chunk size
-		outputPath,                   // where to save the file
+		input,               // input path
+		a.defaultBitrate,    // audio bitrate
+		strconv.Itoa(index), // index of stream
+		a.defaultChunkSize,  // chunk size
+		outputPath,          // where to save the file
 	).Output()
 
 	if err != nil {
@@ -64,7 +64,7 @@ func (a *AudioAPI) ExtractAudio(input, lang string, inputObject Stream) error {
 		return errors.New("failed to extract audio")
 	}
 
-	a.log.Info("extract output", logger.String("output", string(out)))
+	a.log.Info("extract output", logger.String("output", string(cmd)))
 
 	return nil
 }

@@ -1,2 +1,3 @@
 #!/bin/bash
-ffprobe -v error -show_streams sample-avi-file.avi -print_format json
+input_video=$1
+ffprobe -v error -show_streams "$input_video" -print_format json

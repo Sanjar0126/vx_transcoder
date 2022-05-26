@@ -10,8 +10,8 @@ type AudioLayerReader interface {
 	ExtractLayers(input string) ([]ffmpeg.Stream, error)
 }
 
-type AuidoExtracter interface {
-	ExtractAudio(input, lang string, inputObject ffmpeg.Stream) error
+type AudioExtracter interface {
+	ExtractAudio(input, lang, slug string, index int) error
 	AudioLayerReader
 }
 
@@ -22,10 +22,11 @@ type AudioObject struct {
 	audio ffmpeg.AudioAPI
 }
 
-func NewAudioExtracter(cfg *config.Config, log logger.Logger) AuidoExtracter {
+func NewAudioExtracter(cfg *config.Config, log logger.Logger) AudioExtracter {
 	return &AudioObject{
-		cfg: cfg,
-		log: log,
+		cfg:   cfg,
+		log:   log,
+		audio: ffmpeg.NewAudioAPI(cfg, log),
 	}
 }
 
@@ -39,10 +40,10 @@ func (a *AudioObject) ExtractLayers(input string) ([]ffmpeg.Stream, error) {
 	return streams, nil
 }
 
-func (a *AudioObject) ExtractAudio(input, lang string, inputObject ffmpeg.Stream) error {
-	err := a.audio.ExtractAudio(input, lang, inputObject)
+func (a *AudioObject) ExtractAudio(input, lang, slug string, index int) error {
+	err := a.audio.ExtractAudio(input, lang, slug, index)
 	if err != nil {
-		a.log.Error("failed to exract audios", logger.Error(err))
+		a.log.Error("failed to extract audios", logger.Error(err))
 		return err
 	}
 

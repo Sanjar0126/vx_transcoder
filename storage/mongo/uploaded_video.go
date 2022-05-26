@@ -7,6 +7,7 @@ import (
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/models"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/storage/repo"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -29,7 +30,7 @@ func (up *uploadedVideoStorage) Create(ctx context.Context, req models.UploadedV
 	)
 
 	_, err := up.collection.InsertOne(ctx, models.UploadedVideoFull{
-		ID:            req.ID,
+		//ID:            req.ID,
 		MovieSlug:     req.MovieSlug,
 		Type:          req.Type,
 		Stage:         req.Stage,
@@ -49,7 +50,9 @@ func (up *uploadedVideoStorage) Create(ctx context.Context, req models.UploadedV
 }
 
 func (up *uploadedVideoStorage) Update(ctx context.Context, req models.UploadVideoRequest) error {
-	err := up.collection.FindOneAndUpdate(ctx, bson.M{"id": req.ID},
+	objId, _ := primitive.ObjectIDFromHex(req.ID)
+
+	err := up.collection.FindOneAndUpdate(ctx, bson.M{"_id": objId},
 		bson.M{"$set": bson.M{"stage": req.Stage}})
 
 	if err.Err() != nil {
@@ -65,7 +68,11 @@ func (up *uploadedVideoStorage) GetAll(ctx context.Context,
 		response []*models.UploadedVideoFull
 	)
 
-	rows, err := up.collection.Find(ctx, bson.M{"stage": filter.Stage})
+	rows, err := up.collection.Find(ctx, bson.M{
+		"stage": bson.M{
+			"$in": filter.Stages,
+		},
+	})
 	if err != nil {
 		return response, err
 	}
@@ -77,20 +84,22 @@ func (up *uploadedVideoStorage) GetAll(ctx context.Context,
 	return response, nil
 }
 
-func (up *uploadedVideoStorage) Get(ctx context.Context, id string) (resp *models.UploadedVideo,
+func (up *uploadedVideoStorage) Get(ctx context.Context, id string) (resp *models.UploadedVideoFull,
 	err error) {
-	err = up.collection.FindOne(ctx, bson.M{"id": id}).Decode(&resp)
+	objId, _ := primitive.ObjectIDFromHex(id)
+
+	err = up.collection.FindOne(ctx, bson.M{"_id": objId}).Decode(&resp)
 	if err != nil {
 		return resp, err
 	}
-
-	resp.FilePath = id
 
 	return resp, nil
 }
 
 func (up *uploadedVideoStorage) Delete(ctx context.Context, id string) error {
-	resp := up.collection.FindOneAndDelete(ctx, bson.M{"id": id})
+	objId, _ := primitive.ObjectIDFromHex(id)
+
+	resp := up.collection.FindOneAndDelete(ctx, bson.M{"_id": objId})
 	if resp.Err() != nil {
 		return resp.Err()
 	}
