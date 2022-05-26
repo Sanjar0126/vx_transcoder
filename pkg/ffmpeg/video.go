@@ -1,7 +1,6 @@
 package ffmpeg
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"os/exec"
@@ -43,6 +42,7 @@ type ResizeVideoArgs struct {
 	Slug        string
 	Input       string
 	Width       string
+	Height      string
 	BitRate     string
 	InputObject Stream
 }
@@ -50,14 +50,14 @@ type ResizeVideoArgs struct {
 func (v *VideoAPI) ResizeVideo(args ResizeVideoArgs) error {
 	var (
 		outputPath = fmt.Sprintf(
-			"%s/%s/videos/%sp/video.m3u8", v.cfg.OutputDir, args.Slug, args.Width,
+			"%s/%s/videos/%sp/video.m3u8", v.cfg.OutputDir, args.Slug, args.Height,
 		)
 
 		resizeVideoScript   = fmt.Sprintf("%s%s", v.cfg.ScriptsFolder, "/ffmpeg/resize_video.sh")
 		resizingWidthHeight = fmt.Sprintf("%s:-2", args.Width)
 	)
 
-	out := exec.Command(
+	out, err := exec.Command(
 		"/bin/sh",
 		resizeVideoScript,
 		args.Input,
@@ -65,21 +65,14 @@ func (v *VideoAPI) ResizeVideo(args ResizeVideoArgs) error {
 		args.BitRate,
 		v.defaultChunkSize,
 		outputPath,
-	)
-
-	var stdout, stderr bytes.Buffer
-	out.Stderr = &stderr
-	out.Stdout = &stdout
-	err := out.Run()
-
-	fmt.Println(string(stderr.Bytes()))
+	).Output()
 
 	if err != nil {
 		v.log.Error("failed to extract video", logger.Error(err))
 		return errors.New("failed to extract video")
 	}
 
-	v.log.Info("extract output", logger.String("output", ""))
+	v.log.Info("extract output", logger.String("output", string(out)))
 
 	return nil
 }

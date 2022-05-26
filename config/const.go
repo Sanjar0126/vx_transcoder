@@ -11,7 +11,6 @@ var (
 	RabbitMQPort           = 5672
 
 	StagesMatrix = map[string]string{
-		"info":     "audio",
 		"new":      "audio",
 		"audio":    "subtitle",
 		"subtitle": "video",
@@ -19,7 +18,9 @@ var (
 		"master":   "upload",
 	}
 
-	StagesArray = []string{"new", "info", "audio", "video", "subtitle", "master"}
+	StagesArray = []string{"new", "audio", "video", "subtitle", "master"}
 
 	JobCount = 2
+
+	InputPathTemplate = "%s%s.%s"
 )

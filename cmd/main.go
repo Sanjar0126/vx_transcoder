@@ -8,11 +8,11 @@ import (
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/config"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/cronjob"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/logger"
-	transcoder "gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/transcode"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/transcode/audio"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/transcode/folder"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/transcode/subtitle"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/transcode/video"
+	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/transcode/worker"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/storage"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/storage/db"
 	"google.golang.org/grpc"
@@ -41,8 +41,8 @@ func main() {
 	//uploader := cloud.NewObjectUploader(&cfg, log)
 	//var t transcoder.Transcoder
 
-	transcodeOpts := transcoder.Opts{
-		FolderGen: folderGen,
+	workerOpts := worker.Opts{
+		Generator: folderGen,
 		VideoExt:  videoExr,
 		AudioExt:  audioExr,
 		SubExt:    subExr,
@@ -51,7 +51,7 @@ func main() {
 		DB:        storageDB,
 	}
 
-	workerPool := transcoder.WorkerPools{
+	workerPool := worker.WorkerPools{
 		JobsMap:           make(map[string]struct{}),
 		MasterInfoJobs:    make(chan string, config.JobCount),
 		FolderJobs:        make(chan string, config.JobCount),
@@ -59,13 +59,14 @@ func main() {
 		VideoJobs:         make(chan string, config.JobCount),
 		SubtitleJobs:      make(chan string, config.JobCount),
 		ObjectStorageJobs: make(chan string, config.JobCount),
-		Opts:              transcodeOpts,
+		Opts:              workerOpts,
 	}
 
 	go workerPool.CreateFolder()
 	go workerPool.AudioInfo()
 	go workerPool.SubtitleInfo()
 	go workerPool.VideoInfo()
+	go workerPool.MasterGenerate()
 
 	c := cron.New()
 	newCronJob := cronjob.NewCronjob(log, cfg, c, storageDB, workerPool)

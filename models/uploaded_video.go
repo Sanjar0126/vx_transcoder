@@ -20,11 +20,11 @@ type UploadedVideo struct {
 }
 
 type UploadedVideoFilter struct {
-	Stages []string `json:"stages" bson:"stage,omitempty"`
+	Stages []string `json:"stages" bson:"stages,omitempty"`
 }
 
 type UploadedVideoFull struct {
-	ID            string    `json:"_id" bson:"_id,omitempty"`
+	ID            string    `json:"_id" bson:"_id,omitempty"` //nolint
 	MovieSlug     string    `json:"movie_slug" bson:"movie_slug,omitempty"`
 	Type          string    `json:"type" bson:"type,omitempty"`
 	SeasonNumber  int32     `json:"season_number" bson:"season_number,omitempty"`

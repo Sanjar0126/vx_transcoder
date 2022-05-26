@@ -7,27 +7,26 @@ import (
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/config"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/models"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/logger"
-	transcoder "gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/transcode"
+	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/transcode/worker"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/storage"
 )
 
 type Cronjob struct {
-	log        logger.Logger
-	cfg        config.Config
-	cronJob    *cron.Cron
-	db         storage.StorageI
-	transcoder transcoder.Transcoder
-	w          transcoder.WorkerPools
+	log     logger.Logger
+	cfg     config.Config
+	cronJob *cron.Cron
+	db      storage.StorageI
+	worker  worker.WorkerPools
 }
 
 func NewCronjob(log logger.Logger, cfg config.Config,
-	cron *cron.Cron, db storage.StorageI, w transcoder.WorkerPools) *Cronjob {
+	cron *cron.Cron, db storage.StorageI, worker worker.WorkerPools) *Cronjob {
 	return &Cronjob{
 		cfg:     cfg,
 		log:     log,
 		cronJob: cron,
 		db:      db,
-		w:       w,
+		worker:  worker,
 	}
 }
 
@@ -37,6 +36,7 @@ func (c *Cronjob) Run() {
 		c.log.Error("failed to register cronjob", logger.Error(err))
 		panic(err)
 	}
+
 	c.log.Info("cronjob is registered")
 	c.cronJob.Start()
 }
@@ -49,5 +49,5 @@ func (c *Cronjob) transcode() {
 		c.log.Error("error while getting list of videos", logger.Error(err))
 	}
 
-	c.w.DistributeJobs(dbRes)
+	c.worker.DistributeJobs(dbRes)
 }

@@ -2,32 +2,18 @@ package utils
 
 import (
 	"fmt"
+	"strings"
 
 	fffmpeg "gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/ffmpeg"
 )
 
-func GetLangArrayString(streams []fffmpeg.Stream) string {
-	var res = ""
-	var lang string
-
-	for idx, stream := range streams {
-		lang = GetLang(stream.Tags.Language, idx)
-
-		if res == "" {
-			res = lang
-		} else {
-			res = res + "," + lang
-		}
-	}
-
-	return res
-}
-
 func GetVideosArrayString(streams []fffmpeg.Stream) string {
-	var res = ""
-	var resolutions = []int{240, 360, 480, 720, 1080}
-	var ids []int
-	var removed = false
+	var (
+		res         = ""
+		resolutions = []int{240, 360, 480, 720, 1080}
+		ids         []int
+		removed     = false
+	)
 
 	for _, stream := range streams {
 		for idx, resolution := range resolutions {
@@ -64,16 +50,18 @@ func remove(slice []int, s int) []int {
 func GetLang(input string, idx int) string {
 	if input == "" {
 		return fmt.Sprintf("track_%d", idx)
-	} else {
-		return input
 	}
+
+	return input
 }
 
-func GetWidth(stream fffmpeg.Stream) []int {
-	var width = []int{320, 640, 854, 1280, 1960}
-
-	var ids []int
-	var removed = false
+func GetWidth(stream fffmpeg.Stream) ([]int, []int) {
+	var (
+		width   = []int{320, 640, 854, 1280, 1960}
+		height  = []int{240, 360, 480, 720, 1080}
+		ids     []int
+		removed = false
+	)
 
 	for idx, resolution := range width {
 		if resolution > stream.Width {
@@ -83,24 +71,39 @@ func GetWidth(stream fffmpeg.Stream) []int {
 
 	for i, idx := range ids {
 		width = remove(width, idx-i)
+		height = remove(height, idx-i)
 		removed = true
 	}
 
 	if removed {
 		width = append(width, stream.Width)
+		height = append(height, stream.Width)
 	}
 
-	return width
+	return width, height
 }
 
-func GetBitRate(width int) string {
-	if width <= 240 {
+func GetResolution(stream fffmpeg.Stream) string {
+	var (
+		resolutions []string
+	)
+
+	widthList, heightList := GetWidth(stream)
+	for idx, width := range widthList {
+		resolutions = append(resolutions, fmt.Sprintf("%d%d", width, heightList[idx]))
+	}
+
+	return strings.Join(resolutions, ",")
+}
+
+func GetBitRate(height int) string {
+	if height <= 240 {
 		return "350k"
-	} else if 240 < width && width <= 360 {
+	} else if 240 < height && height <= 360 {
 		return "500k"
-	} else if 360 < width && width <= 480 {
+	} else if 360 < height && height <= 480 {
 		return "700k"
-	} else if 480 < width && width <= 720 {
+	} else if 480 < height && height <= 720 {
 		return "1.5M"
 	} else {
 		return "3M"

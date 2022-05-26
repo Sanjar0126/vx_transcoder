@@ -1,14 +1,27 @@
 package folder
 
 import (
+	"errors"
+	"fmt"
+	"os/exec"
+
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/config"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/ffmpeg"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/logger"
 )
 
+type GenerateMasterOpts struct {
+	InputPath      string
+	AudioList      string
+	SubtitleList   string
+	ResolutionList string
+	Slug           string
+	Qualities      string
+}
+
 type FileFolderGenerator interface {
 	GenerateFilesDirectory(input string, inputObjects []ffmpeg.Stream) error
-	GenerateMasterPlaylist(input string, inputObjects []ffmpeg.Stream) error
+	GenerateMasterPlaylist(opts GenerateMasterOpts) error
 }
 
 type FolderObject struct {
@@ -27,6 +40,26 @@ func (f *FolderObject) GenerateFilesDirectory(input string, inputObjects []ffmpe
 	return nil
 }
 
-func (f *FolderObject) GenerateMasterPlaylist(input string, inputObjects []ffmpeg.Stream) error {
+func (f *FolderObject) GenerateMasterPlaylist(opts GenerateMasterOpts) error {
+	f.log.Info("Started generating master playlist")
+
+	outputPath := fmt.Sprintf("%s/%s", f.cfg.OutputDir, opts.Slug)
+	script := fmt.Sprintf("%s%s", f.cfg.ScriptsFolder, "/ffmpeg/generate_master_playlist.sh")
+
+	_, err := exec.Command(
+		"/bin/bash",
+		script,
+		outputPath,
+		opts.AudioList,
+		opts.SubtitleList,
+		opts.Qualities,
+		opts.ResolutionList,
+	).Output()
+
+	if err != nil {
+		f.log.Error("generating master playlist err", logger.Error(err))
+		return errors.New("failed at generating master playlist err")
+	}
+
 	return nil
 }
