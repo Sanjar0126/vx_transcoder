@@ -74,28 +74,9 @@ func (w *WorkerPools) MasterGenerate() {
 		inputPath := fmt.Sprintf(config.InputPathTemplate, videoItem.Path, videoItem.MovieSlug,
 			videoItem.Extension)
 
-		videos, err := w.Opts.VideoExt.ExtractInfos(inputPath)
-		if err != nil {
-			w.Opts.Log.Error("error while extracting info of video", logger.Error(err))
-			continue
-		}
-
-		audios, err := w.Opts.AudioExt.ExtractLayers(inputPath)
-		if err != nil {
-			w.Opts.Log.Error("error while extracting audio layers", logger.Error(err))
-			continue
-		}
-
-		subtitles, err := w.Opts.SubExt.GetSubtitleLayers(inputPath)
-		if err != nil {
-			w.Opts.Log.Error("error while extracting subtitle layers", logger.Error(err))
-			continue
-		}
-
-		audioList := utils.GetLangArrayString(audios)
-		subtitleList := utils.GetLangArrayString(subtitles)
-		resolutions := utils.GetResolution(videos[0])
-		qualityList := utils.GetVideosArrayString(videos)
+		audioList := utils.GetAudioList(videoItem.AudioStreams)
+		subtitleList := utils.GetLangArrayString(videoItem.SubtitleStreams)
+		resolutions := utils.GetResolution(videoItem.VideoStreams[0])
 
 		err = w.Opts.Generator.GenerateMasterPlaylist(folder.GenerateMasterOpts{
 			AudioList:      audioList,
@@ -103,11 +84,16 @@ func (w *WorkerPools) MasterGenerate() {
 			ResolutionList: resolutions,
 			InputPath:      inputPath,
 			Slug:           videoItem.MovieSlug,
-			Qualities:      qualityList,
 		})
 		if err != nil {
 			w.Opts.Log.Error("error while generating master playlist", logger.Error(err))
 			continue
+		}
+
+		err = w.updateStage(videoItem.ID, videoItem.Stage)
+		if err != nil {
+			w.Opts.Log.Error(msgs.ErrUpdStage, logger.Error(err))
+			return
 		}
 
 		delete(w.JobsMap, job)
@@ -126,24 +112,16 @@ out:
 		inputPath := fmt.Sprintf(config.InputPathTemplate, videoItem.Path, videoItem.MovieSlug,
 			videoItem.Extension)
 
-		videos, err := w.Opts.VideoExt.ExtractInfos(inputPath)
-		if err != nil {
-			w.Opts.Log.Error("error while extracting video info", logger.Error(err))
-			continue
-		}
+		for _, stream := range videoItem.VideoStreams {
+			resolutionList := utils.GetResolution(stream)
 
-		for _, stream := range videos {
-			widthList, heightList := utils.GetWidth(stream)
-
-			for idx, width := range widthList {
-				bitrate := utils.GetBitRate(width)
-
+			for _, resolution := range resolutionList {
 				err = w.Opts.VideoExt.ResizeVideo(fffmpeg.ResizeVideoArgs{
 					Slug:        videoItem.MovieSlug,
 					Input:       inputPath,
-					Width:       strconv.Itoa(width),
-					Height:      strconv.Itoa(heightList[idx]),
-					BitRate:     bitrate,
+					Width:       strconv.Itoa(resolution.Width),
+					Height:      strconv.Itoa(resolution.Height),
+					BitRate:     resolution.BitRate,
 					InputObject: stream,
 				})
 				if err != nil {
@@ -153,10 +131,7 @@ out:
 			}
 		}
 
-		err = w.Opts.DB.UploadedVideo().Update(context.Background(), models.UploadVideoRequest{
-			ID:    videoItem.ID,
-			Stage: config.StagesMatrix[videoItem.Stage],
-		})
+		err = w.updateStage(videoItem.ID, videoItem.Stage)
 		if err != nil {
 			w.Opts.Log.Error(msgs.ErrUpdStage, logger.Error(err))
 			return
@@ -177,14 +152,8 @@ func (w *WorkerPools) SubtitleInfo() {
 		inputPath := fmt.Sprintf(config.InputPathTemplate, videoItem.Path, videoItem.MovieSlug,
 			videoItem.Extension)
 
-		subtitles, err := w.Opts.SubExt.GetSubtitleLayers(inputPath)
-		if err != nil {
-			w.Opts.Log.Error("error while extracting subtitle layers", logger.Error(err))
-			continue
-		}
-
-		for idx, stream := range subtitles {
-			lang := utils.GetLang(stream.Tags.Language, idx)
+		for idx, stream := range videoItem.SubtitleStreams {
+			lang := utils.GetTag(stream.Tags, idx).Language
 			err = w.Opts.SubExt.ExtractSubtitle(inputPath, lang, videoItem.MovieSlug, idx)
 
 			if err != nil {
@@ -193,10 +162,7 @@ func (w *WorkerPools) SubtitleInfo() {
 			}
 		}
 
-		err = w.Opts.DB.UploadedVideo().Update(context.Background(), models.UploadVideoRequest{
-			ID:    videoItem.ID,
-			Stage: config.StagesMatrix[videoItem.Stage],
-		})
+		err = w.updateStage(videoItem.ID, videoItem.Stage)
 		if err != nil {
 			w.Opts.Log.Error(msgs.ErrUpdStage, logger.Error(err))
 			return
@@ -217,14 +183,8 @@ func (w *WorkerPools) AudioInfo() {
 		inputPath := fmt.Sprintf(config.InputPathTemplate, videoItem.Path, videoItem.MovieSlug,
 			videoItem.Extension)
 
-		audios, err := w.Opts.AudioExt.ExtractLayers(inputPath)
-		if err != nil {
-			w.Opts.Log.Error("error while extracting audio layers", logger.Error(err))
-			continue
-		}
-
-		for idx, stream := range audios {
-			lang := utils.GetLang(stream.Tags.Language, idx)
+		for idx, stream := range videoItem.AudioStreams {
+			lang := utils.GetTag(stream.Tags, idx).Language
 			err = w.Opts.AudioExt.ExtractAudio(inputPath, lang, videoItem.MovieSlug, idx)
 
 			if err != nil {
@@ -233,10 +193,7 @@ func (w *WorkerPools) AudioInfo() {
 			}
 		}
 
-		err = w.Opts.DB.UploadedVideo().Update(context.Background(), models.UploadVideoRequest{
-			ID:    videoItem.ID,
-			Stage: config.StagesMatrix[videoItem.Stage],
-		})
+		err = w.updateStage(videoItem.ID, videoItem.Stage)
 		if err != nil {
 			w.Opts.Log.Error(msgs.ErrUpdStage, logger.Error(err))
 			return
@@ -279,7 +236,7 @@ func (w *WorkerPools) CreateFolder() {
 		subtitleList := utils.GetLangArrayString(subtitles)
 		qualityList := utils.GetVideosArrayString(videos)
 
-		err = folder.CreateFolders(folder.FolderOpts{
+		err = w.Opts.Generator.GenerateFilesDirectory(folder.FolderOpts{
 			OutputPath:   w.Opts.Cfg.OutputDir + "/" + videoItem.MovieSlug,
 			AudioList:    audioList,
 			SubtitleList: subtitleList,
@@ -291,9 +248,12 @@ func (w *WorkerPools) CreateFolder() {
 			continue
 		}
 
-		err = w.Opts.DB.UploadedVideo().Update(context.Background(), models.UploadVideoRequest{
-			ID:    videoItem.ID,
-			Stage: config.StagesMatrix[videoItem.Stage],
+		err = w.Opts.DB.UploadedVideo().UpdateStreams(context.Background(), models.UpdateStreams{
+			AudioStreams:    audios,
+			VideoStreams:    videos,
+			SubtitleStreams: subtitles,
+			Stage:           config.StagesMatrix[videoItem.Stage],
+			ID:              videoItem.ID,
 		})
 		if err != nil {
 			w.Opts.Log.Error(msgs.ErrUpdStage, logger.Error(err))
@@ -302,4 +262,13 @@ func (w *WorkerPools) CreateFolder() {
 
 		delete(w.JobsMap, job)
 	}
+}
+
+func (w *WorkerPools) updateStage(id, stage string) error {
+	err := w.Opts.DB.UploadedVideo().Update(context.Background(), models.UploadVideoRequest{
+		ID:    id,
+		Stage: config.StagesMatrix[stage],
+	})
+
+	return err
 }

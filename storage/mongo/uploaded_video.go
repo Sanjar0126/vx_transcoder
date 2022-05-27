@@ -29,8 +29,8 @@ func (up *uploadedVideoStorage) Create(ctx context.Context, req models.UploadedV
 		resp models.UploadedVideo
 	)
 
-	_, err := up.collection.InsertOne(ctx, models.UploadedVideoFull{
-		//ID:            req.ID,
+	inserted, err := up.collection.InsertOne(ctx, models.UploadedVideoFull{
+		ID:            req.ID,
 		MovieSlug:     req.MovieSlug,
 		Type:          req.Type,
 		Stage:         req.Stage,
@@ -44,22 +44,38 @@ func (up *uploadedVideoStorage) Create(ctx context.Context, req models.UploadedV
 		return resp.FilePath, err
 	}
 
-	resp.FilePath = req.ID
+	resp.FilePath = inserted.InsertedID.(string)
 
 	return resp.FilePath, nil
 }
 
 func (up *uploadedVideoStorage) Update(ctx context.Context, req models.UploadVideoRequest) error {
-	objId, _ := primitive.ObjectIDFromHex(req.ID)
-
-	err := up.collection.FindOneAndUpdate(ctx, bson.M{"_id": objId},
-		bson.M{"$set": bson.M{"stage": req.Stage}})
-
-	if err.Err() != nil {
-		return err.Err()
+	objId, objErr := primitive.ObjectIDFromHex(req.ID)
+	if objErr != nil {
+		return objErr
 	}
 
-	return nil
+	err := up.collection.FindOneAndUpdate(ctx, bson.M{models.IdLiteral: objId},
+		bson.M{"$set": bson.M{"stage": req.Stage}})
+
+	return err.Err()
+}
+
+func (up *uploadedVideoStorage) UpdateStreams(ctx context.Context, req models.UpdateStreams) error {
+	objId, objErr := primitive.ObjectIDFromHex(req.ID)
+	if objErr != nil {
+		return objErr
+	}
+
+	err := up.collection.FindOneAndUpdate(ctx, bson.M{models.IdLiteral: objId},
+		bson.M{"$set": bson.M{
+			"stage":     req.Stage,
+			"audios":    req.AudioStreams,
+			"subtitles": req.SubtitleStreams,
+			"videos":    req.VideoStreams,
+		}})
+
+	return err.Err()
 }
 
 func (up *uploadedVideoStorage) GetAll(ctx context.Context,
@@ -86,9 +102,12 @@ func (up *uploadedVideoStorage) GetAll(ctx context.Context,
 
 func (up *uploadedVideoStorage) Get(ctx context.Context, id string) (resp *models.UploadedVideoFull,
 	err error) {
-	objId, _ := primitive.ObjectIDFromHex(id)
+	objId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return resp, err
+	}
 
-	err = up.collection.FindOne(ctx, bson.M{"_id": objId}).Decode(&resp)
+	err = up.collection.FindOne(ctx, bson.M{models.IdLiteral: objId}).Decode(&resp)
 	if err != nil {
 		return resp, err
 	}
@@ -97,9 +116,12 @@ func (up *uploadedVideoStorage) Get(ctx context.Context, id string) (resp *model
 }
 
 func (up *uploadedVideoStorage) Delete(ctx context.Context, id string) error {
-	objId, _ := primitive.ObjectIDFromHex(id)
+	objId, objErr := primitive.ObjectIDFromHex(id)
+	if objErr != nil {
+		return objErr
+	}
 
-	resp := up.collection.FindOneAndDelete(ctx, bson.M{"_id": objId})
+	resp := up.collection.FindOneAndDelete(ctx, bson.M{models.IdLiteral: objId})
 	if resp.Err() != nil {
 		return resp.Err()
 	}

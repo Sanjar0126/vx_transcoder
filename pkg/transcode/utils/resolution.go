@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	fffmpeg "gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/ffmpeg"
@@ -9,16 +10,16 @@ import (
 
 func GetVideosArrayString(streams []fffmpeg.Stream) string {
 	var (
-		res         = ""
-		resolutions = []int{240, 360, 480, 720, 1080}
-		ids         []int
-		removed     = false
+		resolutions       = []int{240, 360, 480, 720, 1080}
+		resolutionStrings []string
+		ids               []int
+		removed           = false
 	)
 
 	for _, stream := range streams {
-		for idx, resolution := range resolutions {
+		for index, resolution := range resolutions {
 			if resolution > stream.Height {
-				ids = append(ids, idx)
+				ids = append(ids, index)
 			}
 		}
 
@@ -32,80 +33,72 @@ func GetVideosArrayString(streams []fffmpeg.Stream) string {
 		}
 	}
 
-	for _, resol := range resolutions {
-		if res == "" {
-			res = fmt.Sprintf("%dp", resol)
-		} else {
-			res = fmt.Sprintf("%s,%dp", res, resol)
-		}
+	for _, resolution := range resolutions {
+		resolutionStrings = append(resolutionStrings, fmt.Sprintf("%dp", resolution))
 	}
 
-	return res
+	return strings.Join(resolutionStrings, ",")
 }
 
 func remove(slice []int, s int) []int {
 	return append(slice[:s], slice[s+1:]...)
 }
 
-func GetLang(input string, idx int) string {
-	if input == "" {
-		return fmt.Sprintf("track_%d", idx)
-	}
-
-	return input
-}
-
-func GetWidth(stream fffmpeg.Stream) ([]int, []int) {
+func GetResolution(stream fffmpeg.Stream) []fffmpeg.Resolution {
 	var (
-		width   = []int{320, 640, 854, 1280, 1920}
-		height  = []int{240, 360, 480, 720, 1080}
+		resolutions = []fffmpeg.Resolution{
+			{Width: 320, Height: 240},
+			{Width: 640, Height: 360},
+			{Width: 854, Height: 480},
+			{Width: 1280, Height: 720},
+			{Width: 1920, Height: 1080},
+		}
 		ids     []int
 		removed = false
 	)
 
-	for idx, resolution := range width {
-		if resolution > stream.Width {
+	for idx, resolution := range resolutions {
+		if resolution.Width > stream.Width {
 			ids = append(ids, idx)
+		} else {
+			resolution.BitRate = GetBitRate(resolution.Width, resolution.Height)
 		}
 	}
 
-	for i, idx := range ids {
-		width = remove(width, idx-i)
-		height = remove(height, idx-i)
+	for i, id := range ids {
+		resolutions = append(resolutions[:id-i], resolutions[id-i+1:]...)
 		removed = true
 	}
 
 	if removed {
-		width = append(width, stream.Width)
-		height = append(height, stream.Width)
+		resolutions = append(resolutions, fffmpeg.Resolution{
+			Width:   stream.Width,
+			Height:  stream.Height,
+			BitRate: GetBitRate(stream.Width, stream.Height),
+		})
 	}
 
-	return width, height
+	return resolutions
 }
 
-func GetResolution(stream fffmpeg.Stream) string {
+func GetBitRate(width, height int) string {
+	//if height <= 240 {
+	//	return "358400"
+	//} else if 240 < height && height <= 360 {
+	//	return "512000"
+	//} else if 360 < height && height <= 480 {
+	//	return "716800"
+	//} else if 480 < height && height <= 720 {
+	//	return "1572864"
+	//} else {
+	//	return "3145728"
+	//}
 	var (
-		resolutions []string
+		bpp = 0.067
+		fps = 23.9
 	)
 
-	widthList, heightList := GetWidth(stream)
-	for idx, width := range widthList {
-		resolutions = append(resolutions, fmt.Sprintf("%d%d", width, heightList[idx]))
-	}
+	bitRate := float64(width) * float64(height) * bpp * fps
 
-	return strings.Join(resolutions, ",")
-}
-
-func GetBitRate(height int) string {
-	if height <= 240 {
-		return "350k"
-	} else if 240 < height && height <= 360 {
-		return "500k"
-	} else if 360 < height && height <= 480 {
-		return "700k"
-	} else if 480 < height && height <= 720 {
-		return "1.5M"
-	} else {
-		return "3M"
-	}
+	return strconv.Itoa(int(bitRate))
 }

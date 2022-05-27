@@ -39,7 +39,6 @@ func main() {
 	audioExr := audio.NewAudioExtracter(&cfg, log)
 	subExr := subtitle.NewSubtitleExtracter(&cfg, log)
 	//uploader := cloud.NewObjectUploader(&cfg, log)
-	//var t transcoder.Transcoder
 
 	workerOpts := worker.Opts{
 		Generator: folderGen,

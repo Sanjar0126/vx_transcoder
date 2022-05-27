@@ -79,8 +79,8 @@ func Load() Config { //nolint
 		"%s%s", absPath, "/scripts",
 	)))
 
-	config.OutputDir = cast.ToString(env("OUTPUT_DIRECTORY", "/home/voxe/Videos/out"))
-	config.InputDir = cast.ToString(env("INPUT_DIRECTORY", "/home/voxe/Videos/in"))
+	config.OutputDir = cast.ToString(env("OUTPUT_DIRECTORY", "/home/sanjar/Videos/out"))
+	config.InputDir = cast.ToString(env("INPUT_DIRECTORY", "/home/sanjar/Videos/in"))
 
 	return config
 }

@@ -1,24 +1,51 @@
 package utils
 
 import (
+	"fmt"
+
 	fffmpeg "gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/ffmpeg"
 )
 
-func GetLangArrayString(streams []fffmpeg.Stream) string {
+func GetAudioList(streams []fffmpeg.Stream) []fffmpeg.Tags {
 	var (
-		res  = ""
-		lang string
+		result []fffmpeg.Tags
 	)
 
 	for idx, stream := range streams {
-		lang = GetLang(stream.Tags.Language, idx)
-
-		if res == "" {
-			res = lang
-		} else {
-			res = res + "," + lang
-		}
+		result = append(result, GetTag(stream.Tags, idx))
 	}
 
-	return res
+	return result
+}
+
+func GetLangArrayString(streams []fffmpeg.Stream) []fffmpeg.Tags {
+	var (
+		lang []fffmpeg.Tags
+	)
+
+	for idx, stream := range streams {
+		lang = append(lang, GetTag(stream.Tags, idx))
+	}
+
+	return lang
+}
+
+func GetTag(input fffmpeg.Tags, idx int) fffmpeg.Tags {
+	var (
+		title, lang string
+	)
+
+	if input.Language == "" {
+		lang = fmt.Sprintf("track_%d", idx+1)
+	} else {
+		lang = input.Language
+	}
+
+	if input.Title == "" {
+		lang = fmt.Sprintf("Track %d", idx+1)
+	} else {
+		title = input.Title
+	}
+
+	return fffmpeg.Tags{Title: title, Language: lang}
 }
