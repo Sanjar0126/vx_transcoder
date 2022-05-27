@@ -51,7 +51,9 @@ func (w *WorkerPools) DistributeJobs(objs []*models.UploadedVideoFull) {
 			w.JobsMap[item.ID] = struct{}{}
 		}
 
-		fmt.Println("INPUT ITEM STAGE: ", item.Stage)
+		if item.Stage == "upload" {
+			fmt.Println("upload in distribute")
+		}
 
 		switch item.Stage {
 		case "new":
@@ -103,7 +105,6 @@ func (w *WorkerPools) MasterGenerate() {
 			continue
 		}
 
-		fmt.Println("master: current stage", videoItem.Stage, config.StagesMatrix[videoItem.Stage])
 		err = w.updateStage(videoItem.ID, config.StagesMatrix[videoItem.Stage])
 		if err != nil {
 			w.Opts.Log.Error(msgs.ErrUpdStage, logger.Error(err))
@@ -120,6 +121,12 @@ out:
 		videoItem, err := w.Opts.DB.UploadedVideo().Get(context.Background(), job)
 		if err != nil {
 			w.Opts.Log.Error(msgs.ErrDBGetAll, logger.Error(err))
+			continue
+		}
+
+		if videoItem.Stage != "video" {
+			fmt.Println("wrong house fool")
+			fmt.Println("job id", job)
 			continue
 		}
 
@@ -145,7 +152,6 @@ out:
 			}
 		}
 
-		fmt.Println("video: current stage", videoItem.Stage, config.StagesMatrix[videoItem.Stage])
 		err = w.updateStage(videoItem.ID, config.StagesMatrix[videoItem.Stage])
 		if err != nil {
 			w.Opts.Log.Error(msgs.ErrUpdStage, logger.Error(err))
@@ -177,7 +183,6 @@ func (w *WorkerPools) SubtitleInfo() {
 			}
 		}
 
-		fmt.Println("subtitle: current stage", videoItem.Stage, config.StagesMatrix[videoItem.Stage])
 		err = w.updateStage(videoItem.ID, config.StagesMatrix[videoItem.Stage])
 		if err != nil {
 			w.Opts.Log.Error(msgs.ErrUpdStage, logger.Error(err))
@@ -209,7 +214,6 @@ func (w *WorkerPools) AudioInfo() {
 			}
 		}
 
-		fmt.Println("audio: current stage", videoItem.Stage, config.StagesMatrix[videoItem.Stage])
 		err = w.updateStage(videoItem.ID, config.StagesMatrix[videoItem.Stage])
 		if err != nil {
 			w.Opts.Log.Error(msgs.ErrUpdStage, logger.Error(err))
@@ -265,7 +269,6 @@ func (w *WorkerPools) CreateFolder() {
 			continue
 		}
 
-		fmt.Println("folder: current stage", videoItem.Stage, config.StagesMatrix[videoItem.Stage])
 		err = w.Opts.DB.UploadedVideo().UpdateStreams(context.Background(), models.UpdateStreams{
 			AudioStreams:    audios,
 			VideoStreams:    videos,
@@ -283,7 +286,6 @@ func (w *WorkerPools) CreateFolder() {
 }
 
 func (w *WorkerPools) updateStage(id, stage string) error {
-	fmt.Println("stage: ", stage)
 	err := w.Opts.DB.UploadedVideo().Update(context.Background(), models.UploadVideoRequest{
 		ID:    id,
 		Stage: stage,
