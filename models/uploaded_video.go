@@ -38,17 +38,17 @@ type UploadedVideoFilter struct {
 }
 
 type UploadedVideoFull struct {
-	ID              string          `json:"_id" bson:"_id,omitempty"` //nolint
-	MovieSlug       string          `json:"movie_slug" bson:"movie_slug,omitempty"`
-	Type            string          `json:"type" bson:"type,omitempty"`
-	SeasonNumber    int32           `json:"season_number" bson:"season_number,omitempty"`
-	EpisodeNumber   int32           `json:"episode_number" bson:"episode_number,omitempty"`
-	Stage           string          `json:"stage" bson:"stage,omitempty"`
-	Path            string          `json:"path" bson:"path,omitempty"`
-	Extension       string          `json:"extension" bson:"extension"`
-	AudioStreams    []ffmpeg.Stream `json:"audio_streams,omitempty" bson:"audio_streams"`
-	VideoStreams    []ffmpeg.Stream `json:"video_streams,omitempty" bson:"video_streams"`
-	SubtitleStreams []ffmpeg.Stream `json:"subtitle_streams,omitempty" bson:"subtitle_streams"`
-	UpdatedAt       time.Time       `bson:"updated_at,omitempty" json:"updated_at"`
-	CreatedAt       time.Time       `bson:"created_at,omitempty" json:"created_at"`
+	ID            string          `json:"_id" bson:"_id,omitempty"` //nolint
+	MovieSlug     string          `json:"movie_slug" bson:"movie_slug,omitempty"`
+	Type          string          `json:"type" bson:"type,omitempty"`
+	SeasonNumber  int32           `json:"season_number" bson:"season_number,omitempty"`
+	EpisodeNumber int32           `json:"episode_number" bson:"episode_number,omitempty"`
+	Stage         string          `json:"stage" bson:"stage,omitempty"`
+	Path          string          `json:"path" bson:"path,omitempty"`
+	Extension     string          `json:"extension" bson:"extension"`
+	Audios        []ffmpeg.Stream `json:"audios,omitempty" bson:"audios"`
+	Videos        []ffmpeg.Stream `json:"videos,omitempty" bson:"videos"`
+	Subtitles     []ffmpeg.Stream `json:"subtitles,omitempty" bson:"subtitles"`
+	UpdatedAt     time.Time       `bson:"updated_at,omitempty" json:"updated_at"`
+	CreatedAt     time.Time       `bson:"created_at,omitempty" json:"created_at"`
 }

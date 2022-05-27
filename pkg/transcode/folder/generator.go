@@ -53,17 +53,17 @@ func (f *FolderObject) GenerateFilesDirectory(opts FolderOpts) error {
 
 	for index, audio := range opts.AudioList {
 		if index == 0 {
-			audios = audio.Title
+			audios = audio.Language
 		} else {
-			audios = audios + "," + audio.Title
+			audios = audios + "," + audio.Language
 		}
 	}
 
 	for index, subtitle := range opts.SubtitleList {
 		if index == 0 {
-			subtitles = subtitle.Title
+			subtitles = subtitle.Language
 		} else {
-			subtitles = subtitles + "," + subtitle.Title
+			subtitles = subtitles + "," + subtitle.Language
 		}
 	}
 

@@ -42,7 +42,7 @@ func GetTag(input fffmpeg.Tags, idx int) fffmpeg.Tags {
 	}
 
 	if input.Title == "" {
-		lang = fmt.Sprintf("Track %d", idx+1)
+		title = fmt.Sprintf("Track %d", idx+1)
 	} else {
 		title = input.Title
 	}

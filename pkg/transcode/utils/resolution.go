@@ -61,7 +61,7 @@ func GetResolution(stream fffmpeg.Stream) []fffmpeg.Resolution {
 		if resolution.Width > stream.Width {
 			ids = append(ids, idx)
 		} else {
-			resolution.BitRate = GetBitRate(resolution.Width, resolution.Height)
+			resolutions[idx].BitRate = GetBitRate(resolution.Width, resolution.Height)
 		}
 	}
 

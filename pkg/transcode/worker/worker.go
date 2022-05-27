@@ -44,7 +44,14 @@ type Opts struct {
 
 func (w *WorkerPools) DistributeJobs(objs []*models.UploadedVideoFull) {
 	for _, item := range objs {
-		w.JobsMap[item.ID] = struct{}{}
+		if _, exists := w.JobsMap[item.ID]; exists {
+			fmt.Println("already exists in queue")
+		} else {
+			fmt.Println("new job arrived...")
+			w.JobsMap[item.ID] = struct{}{}
+		}
+
+		fmt.Println(item.Stage)
 
 		switch item.Stage {
 		case "new":
@@ -58,6 +65,7 @@ func (w *WorkerPools) DistributeJobs(objs []*models.UploadedVideoFull) {
 		case "master":
 			w.MasterInfoJobs <- item.ID
 		default:
+			fmt.Println("NOT FOUND STAGE exiting")
 			w.Opts.Log.Info("NOT FOUND STAGE exiting...")
 		}
 	}
@@ -74,9 +82,14 @@ func (w *WorkerPools) MasterGenerate() {
 		inputPath := fmt.Sprintf(config.InputPathTemplate, videoItem.Path, videoItem.MovieSlug,
 			videoItem.Extension)
 
-		audioList := utils.GetAudioList(videoItem.AudioStreams)
-		subtitleList := utils.GetLangArrayString(videoItem.SubtitleStreams)
-		resolutions := utils.GetResolution(videoItem.VideoStreams[0])
+		audioList := utils.GetAudioList(videoItem.Audios)
+		subtitleList := utils.GetLangArrayString(videoItem.Subtitles)
+
+		var resolutions []fffmpeg.Resolution
+
+		if len(videoItem.Videos) > 0 {
+			resolutions = utils.GetResolution(videoItem.Videos[0])
+		}
 
 		err = w.Opts.Generator.GenerateMasterPlaylist(folder.GenerateMasterOpts{
 			AudioList:      audioList,
@@ -112,7 +125,7 @@ out:
 		inputPath := fmt.Sprintf(config.InputPathTemplate, videoItem.Path, videoItem.MovieSlug,
 			videoItem.Extension)
 
-		for _, stream := range videoItem.VideoStreams {
+		for _, stream := range videoItem.Videos {
 			resolutionList := utils.GetResolution(stream)
 
 			for _, resolution := range resolutionList {
@@ -152,7 +165,7 @@ func (w *WorkerPools) SubtitleInfo() {
 		inputPath := fmt.Sprintf(config.InputPathTemplate, videoItem.Path, videoItem.MovieSlug,
 			videoItem.Extension)
 
-		for idx, stream := range videoItem.SubtitleStreams {
+		for idx, stream := range videoItem.Subtitles {
 			lang := utils.GetTag(stream.Tags, idx).Language
 			err = w.Opts.SubExt.ExtractSubtitle(inputPath, lang, videoItem.MovieSlug, idx)
 
@@ -183,7 +196,7 @@ func (w *WorkerPools) AudioInfo() {
 		inputPath := fmt.Sprintf(config.InputPathTemplate, videoItem.Path, videoItem.MovieSlug,
 			videoItem.Extension)
 
-		for idx, stream := range videoItem.AudioStreams {
+		for idx, stream := range videoItem.Audios {
 			lang := utils.GetTag(stream.Tags, idx).Language
 			err = w.Opts.AudioExt.ExtractAudio(inputPath, lang, videoItem.MovieSlug, idx)
 
@@ -265,6 +278,7 @@ func (w *WorkerPools) CreateFolder() {
 }
 
 func (w *WorkerPools) updateStage(id, stage string) error {
+	fmt.Println("update stage", config.StagesMatrix[stage], id)
 	err := w.Opts.DB.UploadedVideo().Update(context.Background(), models.UploadVideoRequest{
 		ID:    id,
 		Stage: config.StagesMatrix[stage],

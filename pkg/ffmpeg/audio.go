@@ -49,7 +49,7 @@ func (a *AudioAPI) ExtractAudio(input, lang, slug string, index int) error {
 
 	a.log.Info("extracting audio info", logger.String("input", input), logger.String("lang", lang))
 
-	cmd, err := exec.Command(
+	_, err := exec.Command(
 		"/bin/sh",
 		extractAudioScript,
 		input,               // input path
@@ -64,7 +64,7 @@ func (a *AudioAPI) ExtractAudio(input, lang, slug string, index int) error {
 		return errors.New("failed to extract audio")
 	}
 
-	a.log.Info("extract output", logger.String("output", string(cmd)))
+	a.log.Info("extract output", logger.String("output", string("")))
 
 	return nil
 }

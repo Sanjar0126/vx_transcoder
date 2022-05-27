@@ -33,7 +33,7 @@ func (v *VideoAPI) GetVideoLayers(input string) ([]Stream, error) {
 		return nil, err
 	}
 
-	v.log.Info("video layers are retrieved", logger.Any("videos", videoLayers))
+	v.log.Info("video layers are retrieved", logger.Any("videos", ""))
 
 	return videoLayers, nil
 }
@@ -57,8 +57,6 @@ func (v *VideoAPI) ResizeVideo(args ResizeVideoArgs) error {
 		resizingWidthHeight = fmt.Sprintf("%s:-2", args.Width)
 	)
 
-	fmt.Println(outputPath)
-
 	_, err := exec.Command(
 		"/bin/sh",
 		resizeVideoScript,
@@ -74,7 +72,7 @@ func (v *VideoAPI) ResizeVideo(args ResizeVideoArgs) error {
 		return errors.New("failed to extract video")
 	}
 
-	v.log.Info("extract output", logger.String("output", ""))
+	v.log.Info("extract output", logger.String("output", string("")))
 
 	return nil
 }

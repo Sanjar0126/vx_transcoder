@@ -48,7 +48,7 @@ func (s *SubtitleAPI) ExtractSubtitle(input, lang, slug string, index int) error
 
 	s.log.Info("extracting audio info", logger.String("input", input), logger.String("lang", lang))
 
-	out, err := exec.Command(
+	_, err := exec.Command(
 		"/bin/sh",
 		extractSubtitleScript,
 		input,               // input path
@@ -62,7 +62,7 @@ func (s *SubtitleAPI) ExtractSubtitle(input, lang, slug string, index int) error
 		return errors.New("failed to extract audio")
 	}
 
-	s.log.Info("extract output", logger.String("output", string(out)))
+	s.log.Info("extract output", logger.String("output", string("")))
 
 	return nil
 }
