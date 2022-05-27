@@ -7,7 +7,7 @@ import (
 
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/config"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/models"
-	fffmpeg "gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/ffmpeg"
+	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/ffmpeg"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/logger"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/msgs"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/transcode/audio"
@@ -85,7 +85,7 @@ func (w *WorkerPools) MasterGenerate() {
 		audioList := utils.GetAudioList(videoItem.Audios)
 		subtitleList := utils.GetLangArrayString(videoItem.Subtitles)
 
-		var resolutions []fffmpeg.Resolution
+		var resolutions []ffmpeg.Resolution
 
 		if len(videoItem.Videos) > 0 {
 			resolutions = utils.GetResolution(videoItem.Videos[0])
@@ -129,7 +129,7 @@ out:
 			resolutionList := utils.GetResolution(stream)
 
 			for _, resolution := range resolutionList {
-				err = w.Opts.VideoExt.ResizeVideo(fffmpeg.ResizeVideoArgs{
+				err = w.Opts.VideoExt.ResizeVideo(ffmpeg.ResizeVideoArgs{
 					Slug:        videoItem.MovieSlug,
 					Input:       inputPath,
 					Width:       strconv.Itoa(resolution.Width),
@@ -279,6 +279,7 @@ func (w *WorkerPools) CreateFolder() {
 
 func (w *WorkerPools) updateStage(id, stage string) error {
 	fmt.Println("update stage", config.StagesMatrix[stage], id)
+
 	err := w.Opts.DB.UploadedVideo().Update(context.Background(), models.UploadVideoRequest{
 		ID:    id,
 		Stage: config.StagesMatrix[stage],
