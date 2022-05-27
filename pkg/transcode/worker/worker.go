@@ -47,11 +47,11 @@ func (w *WorkerPools) DistributeJobs(objs []*models.UploadedVideoFull) {
 		if _, exists := w.JobsMap[item.ID]; exists {
 			fmt.Println("already exists in queue")
 		} else {
-			fmt.Println("new job arrived...")
+			// fmt.Println("new job arrived...")
 			w.JobsMap[item.ID] = struct{}{}
 		}
 
-		fmt.Println(item.Stage)
+		fmt.Println("INPUT ITEM STAGE: ", item.Stage)
 
 		switch item.Stage {
 		case "new":
@@ -103,7 +103,7 @@ func (w *WorkerPools) MasterGenerate() {
 			continue
 		}
 
-		err = w.updateStage(videoItem.ID, videoItem.Stage)
+		err = w.updateStage(videoItem.ID, config.StagesMatrix[videoItem.Stage])
 		if err != nil {
 			w.Opts.Log.Error(msgs.ErrUpdStage, logger.Error(err))
 			return
@@ -144,7 +144,7 @@ out:
 			}
 		}
 
-		err = w.updateStage(videoItem.ID, videoItem.Stage)
+		err = w.updateStage(videoItem.ID, config.StagesMatrix[videoItem.Stage])
 		if err != nil {
 			w.Opts.Log.Error(msgs.ErrUpdStage, logger.Error(err))
 			return
@@ -175,7 +175,7 @@ func (w *WorkerPools) SubtitleInfo() {
 			}
 		}
 
-		err = w.updateStage(videoItem.ID, videoItem.Stage)
+		err = w.updateStage(videoItem.ID, config.StagesMatrix[videoItem.Stage])
 		if err != nil {
 			w.Opts.Log.Error(msgs.ErrUpdStage, logger.Error(err))
 			return
@@ -206,7 +206,7 @@ func (w *WorkerPools) AudioInfo() {
 			}
 		}
 
-		err = w.updateStage(videoItem.ID, videoItem.Stage)
+		err = w.updateStage(videoItem.ID, config.StagesMatrix[videoItem.Stage])
 		if err != nil {
 			w.Opts.Log.Error(msgs.ErrUpdStage, logger.Error(err))
 			return
@@ -278,11 +278,10 @@ func (w *WorkerPools) CreateFolder() {
 }
 
 func (w *WorkerPools) updateStage(id, stage string) error {
-	fmt.Println("update stage", config.StagesMatrix[stage], id)
-
+	fmt.Println("stage: ", stage)
 	err := w.Opts.DB.UploadedVideo().Update(context.Background(), models.UploadVideoRequest{
 		ID:    id,
-		Stage: config.StagesMatrix[stage],
+		Stage: stage,
 	})
 
 	return err
