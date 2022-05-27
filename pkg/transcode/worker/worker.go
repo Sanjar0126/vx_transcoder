@@ -103,6 +103,7 @@ func (w *WorkerPools) MasterGenerate() {
 			continue
 		}
 
+		fmt.Println("master: current stage", videoItem.Stage, config.StagesMatrix[videoItem.Stage])
 		err = w.updateStage(videoItem.ID, config.StagesMatrix[videoItem.Stage])
 		if err != nil {
 			w.Opts.Log.Error(msgs.ErrUpdStage, logger.Error(err))
@@ -144,6 +145,7 @@ out:
 			}
 		}
 
+		fmt.Println("video: current stage", videoItem.Stage, config.StagesMatrix[videoItem.Stage])
 		err = w.updateStage(videoItem.ID, config.StagesMatrix[videoItem.Stage])
 		if err != nil {
 			w.Opts.Log.Error(msgs.ErrUpdStage, logger.Error(err))
@@ -175,6 +177,7 @@ func (w *WorkerPools) SubtitleInfo() {
 			}
 		}
 
+		fmt.Println("subtitle: current stage", videoItem.Stage, config.StagesMatrix[videoItem.Stage])
 		err = w.updateStage(videoItem.ID, config.StagesMatrix[videoItem.Stage])
 		if err != nil {
 			w.Opts.Log.Error(msgs.ErrUpdStage, logger.Error(err))
@@ -206,6 +209,7 @@ func (w *WorkerPools) AudioInfo() {
 			}
 		}
 
+		fmt.Println("audio: current stage", videoItem.Stage, config.StagesMatrix[videoItem.Stage])
 		err = w.updateStage(videoItem.ID, config.StagesMatrix[videoItem.Stage])
 		if err != nil {
 			w.Opts.Log.Error(msgs.ErrUpdStage, logger.Error(err))
@@ -261,6 +265,7 @@ func (w *WorkerPools) CreateFolder() {
 			continue
 		}
 
+		fmt.Println("folder: current stage", videoItem.Stage, config.StagesMatrix[videoItem.Stage])
 		err = w.Opts.DB.UploadedVideo().UpdateStreams(context.Background(), models.UpdateStreams{
 			AudioStreams:    audios,
 			VideoStreams:    videos,
