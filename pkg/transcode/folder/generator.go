@@ -51,21 +51,9 @@ func (f *FolderObject) GenerateFilesDirectory(opts FolderOpts) error {
 		audios, subtitles string
 	)
 
-	for index, audio := range opts.AudioList {
-		if index == 0 {
-			audios = audio.Language
-		} else {
-			audios = audios + "," + audio.Language
-		}
-	}
+	audios = getLanguageStringList(opts.AudioList)
 
-	for index, subtitle := range opts.SubtitleList {
-		if index == 0 {
-			subtitles = subtitle.Language
-		} else {
-			subtitles = subtitles + "," + subtitle.Language
-		}
-	}
+	subtitles = getLanguageStringList(opts.SubtitleList)
 
 	_, err = exec.Command("/bin/bash", scriptPath, opts.OutputPath, audios,
 		opts.VideoList, subtitles).Output()
@@ -138,4 +126,18 @@ func getLanguage(index int) string {
 	}
 
 	return "NO"
+}
+
+func getLanguageStringList(input []ffmpeg.Tags) string {
+	var result string
+
+	for index, item := range input {
+		if index == 0 {
+			result = item.Language
+		} else {
+			result = result + "," + item.Language
+		}
+	}
+
+	return result
 }
