@@ -8,6 +8,7 @@ import (
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/config"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/cronjob"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/logger"
+	transcoder "gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/transcode"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/transcode/audio"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/transcode/folder"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/transcode/subtitle"
@@ -39,15 +40,17 @@ func main() {
 	audioExr := audio.NewAudioExtracter(&cfg, log)
 	subExr := subtitle.NewSubtitleExtracter(&cfg, log)
 	//uploader := cloud.NewObjectUploader(&cfg, log)
+	var tr transcoder.Transcoder
 
 	workerOpts := worker.Opts{
-		Generator: folderGen,
-		VideoExt:  videoExr,
-		AudioExt:  audioExr,
-		SubExt:    subExr,
-		Log:       log,
-		Cfg:       &cfg,
-		DB:        storageDB,
+		Generator:  folderGen,
+		VideoExt:   videoExr,
+		AudioExt:   audioExr,
+		SubExt:     subExr,
+		Log:        log,
+		Cfg:        &cfg,
+		DB:         storageDB,
+		Transcoder: tr,
 	}
 
 	workerPool := worker.WorkerPools{
@@ -61,11 +64,7 @@ func main() {
 		Opts:              workerOpts,
 	}
 
-	go workerPool.CreateFolder()
-	go workerPool.AudioInfo()
-	go workerPool.SubtitleInfo()
-	go workerPool.VideoInfo()
-	go workerPool.MasterGenerate()
+	initializeGoroutines(workerPool)
 
 	c := cron.New()
 	newCronJob := cronjob.NewCronjob(log, cfg, c, storageDB, workerPool)
@@ -85,4 +84,12 @@ func main() {
 		log.Error("error while listening: %v", logger.Error(err))
 		panic(err)
 	}
+}
+
+func initializeGoroutines(workerPool worker.WorkerPools) {
+	go workerPool.CreateFolder()
+	go workerPool.AudioInfo()
+	go workerPool.SubtitleInfo()
+	go workerPool.VideoInfo()
+	go workerPool.MasterGenerate()
 }

@@ -11,4 +11,5 @@ var (
 	ErrDBDelete                = "failed to delete object in database"
 	ErrDBGet                   = "failed to get object in database"
 	ErrUpdStage                = "error while updating stage"
+	WrongStage                 = "wrong stage"
 )

@@ -10,6 +10,7 @@ import (
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/ffmpeg"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/logger"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/msgs"
+	transcoder "gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/transcode"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/transcode/audio"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/transcode/folder"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/transcode/subtitle"
@@ -37,6 +38,8 @@ type Opts struct {
 	AudioExt  audio.AudioExtracter
 	SubExt    subtitle.SubtitleExtracter
 
+	Transcoder transcoder.Transcoder
+
 	Log logger.Logger
 	Cfg *config.Config
 	DB  storage.StorageI
@@ -45,29 +48,23 @@ type Opts struct {
 func (w *WorkerPools) DistributeJobs(objs []*models.UploadedVideoFull) {
 	for _, item := range objs {
 		if _, exists := w.JobsMap[item.ID]; exists {
-			fmt.Println("already exists in queue")
+			w.Opts.Log.Info("already exists in queue")
 		} else {
-			// fmt.Println("new job arrived...")
 			w.JobsMap[item.ID] = struct{}{}
 		}
 
-		if item.Stage == "upload" {
-			fmt.Println("upload in distribute")
-		}
-
 		switch item.Stage {
-		case "new":
+		case config.NewStage:
 			w.FolderJobs <- item.ID
-		case "audio":
+		case config.AudioStage:
 			w.AudioJobs <- item.ID
-		case "video":
+		case config.VideoStage:
 			w.VideoJobs <- item.ID
-		case "subtitle":
+		case config.SubtitleStage:
 			w.SubtitleJobs <- item.ID
-		case "master":
+		case config.MasterStage:
 			w.MasterInfoJobs <- item.ID
 		default:
-			fmt.Println("NOT FOUND STAGE exiting")
 			w.Opts.Log.Info("NOT FOUND STAGE exiting...")
 		}
 	}
@@ -78,6 +75,11 @@ func (w *WorkerPools) MasterGenerate() {
 		videoItem, err := w.Opts.DB.UploadedVideo().Get(context.Background(), job)
 		if err != nil {
 			w.Opts.Log.Error(msgs.ErrDBGetAll, logger.Error(err))
+			continue
+		}
+
+		if videoItem.Stage != config.MasterStage {
+			w.Opts.Log.Error(msgs.WrongStage)
 			continue
 		}
 
@@ -124,9 +126,8 @@ out:
 			continue
 		}
 
-		if videoItem.Stage != "video" {
-			fmt.Println("wrong house fool")
-			fmt.Println("job id", job)
+		if videoItem.Stage != config.VideoStage {
+			w.Opts.Log.Error(msgs.WrongStage)
 			continue
 		}
 
@@ -170,6 +171,11 @@ func (w *WorkerPools) SubtitleInfo() {
 			continue
 		}
 
+		if videoItem.Stage != config.SubtitleStage {
+			w.Opts.Log.Error(msgs.WrongStage)
+			continue
+		}
+
 		inputPath := fmt.Sprintf(config.InputPathTemplate, videoItem.Path, videoItem.MovieSlug,
 			videoItem.Extension)
 
@@ -198,6 +204,11 @@ func (w *WorkerPools) AudioInfo() {
 		videoItem, err := w.Opts.DB.UploadedVideo().Get(context.Background(), job)
 		if err != nil {
 			w.Opts.Log.Error(msgs.ErrDBGetAll, logger.Error(err))
+			continue
+		}
+
+		if videoItem.Stage != config.AudioStage {
+			w.Opts.Log.Error(msgs.WrongStage)
 			continue
 		}
 
@@ -232,24 +243,17 @@ func (w *WorkerPools) CreateFolder() {
 			continue
 		}
 
+		if videoItem.Stage != config.NewStage {
+			w.Opts.Log.Error(msgs.WrongStage)
+			continue
+		}
+
 		inputPath := fmt.Sprintf(config.InputPathTemplate, videoItem.Path, videoItem.MovieSlug,
 			videoItem.Extension)
 
-		videos, err := w.Opts.VideoExt.ExtractInfos(inputPath)
+		videos, audios, subtitles, err := w.extractLayers(inputPath)
 		if err != nil {
 			w.Opts.Log.Error("error while extracting info of video", logger.Error(err))
-			continue
-		}
-
-		audios, err := w.Opts.AudioExt.ExtractLayers(inputPath)
-		if err != nil {
-			w.Opts.Log.Error("error while extracting audio layers", logger.Error(err))
-			continue
-		}
-
-		subtitles, err := w.Opts.SubExt.GetSubtitleLayers(inputPath)
-		if err != nil {
-			w.Opts.Log.Error("error while extracting subtitle layers", logger.Error(err))
 			continue
 		}
 
@@ -292,4 +296,24 @@ func (w *WorkerPools) updateStage(id, stage string) error {
 	})
 
 	return err
+}
+
+func (w *WorkerPools) extractLayers(inputPath string) ([]ffmpeg.Stream, []ffmpeg.Stream,
+	[]ffmpeg.Stream, error) {
+	videos, err := w.Opts.VideoExt.ExtractInfos(inputPath)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	audios, err := w.Opts.AudioExt.ExtractLayers(inputPath)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	subtitles, err := w.Opts.SubExt.GetSubtitleLayers(inputPath)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	return videos, audios, subtitles, nil
 }
