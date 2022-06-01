@@ -81,6 +81,7 @@ func initializeGoroutines(workerPool *workerPools) {
 	go workerPool.SubtitleInfo()
 	go workerPool.VideoInfo()
 	go workerPool.MasterGenerate()
+	go workerPool.Upload()
 }
 
 func (w *workerPools) DistributeJobs(objs []*models.UploadedVideoFull) {
@@ -102,34 +103,47 @@ func (w *workerPools) DistributeJobs(objs []*models.UploadedVideoFull) {
 			w.subtitleJobs <- item.ID
 		case config.MasterStage:
 			w.masterFileJobs <- item.ID
+		case config.UploadStage:
+			w.objectStorageJobs <- item.ID
 		default:
 			w.opts.log.Info("NOT FOUND STAGE exiting...")
 		}
 	}
 }
 
-func (w *workerPools) Upload(dbObjs []*models.UploadedVideoFull) {
-	session, err := awsSession.NewSession(&aws.Config{
-		Region: aws.String(w.opts.cfg.AwsRegion),
-		Credentials: credentials.NewStaticCredentials(w.opts.cfg.AwsID,
-			w.opts.cfg.AwsSecret, ""),
-	})
-	if err != nil {
-		w.opts.log.Error("error while creating S3 session")
-		return
-	}
+func (w *workerPools) Upload() {
+	for job := range w.masterFileJobs {
+		videoItem, err := w.opts.db.UploadedVideo().Get(context.Background(), job)
+		if err != nil {
+			w.opts.log.Error(msgs.ErrDBGetAll, logger.Error(err))
+			continue
+		}
 
-	uploader := s3manager.NewUploader(session)
+		if videoItem.Stage != config.UploadStage {
+			w.opts.log.Error(msgs.WrongStage)
+			continue
+		}
 
-	for _, dbObj := range dbObjs {
-		filePath := w.opts.cfg.OutputDir + "/" + dbObj.MovieSlug
+		session, err := awsSession.NewSession(&aws.Config{
+			Region: aws.String(w.opts.cfg.AwsRegion),
+			Credentials: credentials.NewStaticCredentials(w.opts.cfg.AwsID,
+				w.opts.cfg.AwsSecret, ""),
+		})
+		if err != nil {
+			w.opts.log.Error("error while creating S3 session")
+			continue
+		}
 
-		path := fmt.Sprintf("%s/%s", "temp_upload", dbObj.MovieSlug)
+		uploader := s3manager.NewUploader(session)
+
+		filePath := w.opts.cfg.OutputDir + "/" + videoItem.MovieSlug
+
+		path := fmt.Sprintf("%s/%s", "temp_upload", videoItem.MovieSlug)
 
 		file, err := os.Open(filePath)
 		if err != nil {
 			w.opts.log.Error("error while opening file")
-			return
+			continue
 		}
 
 		_, err = uploader.Upload(&s3manager.UploadInput{
@@ -139,8 +153,10 @@ func (w *workerPools) Upload(dbObjs []*models.UploadedVideoFull) {
 		})
 		if err != nil {
 			w.opts.log.Error("error while uploading")
-			return
+			continue
 		}
+
+		delete(w.jobsMap, job)
 	}
 }
 
