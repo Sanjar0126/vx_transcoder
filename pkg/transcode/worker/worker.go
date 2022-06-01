@@ -106,7 +106,7 @@ func (w *workerPools) DistributeJobs(objs []*models.UploadedVideoFull) {
 }
 
 func (w *workerPools) Upload() {
-	for job := range w.masterFileJobs {
+	for job := range w.objectStorageJobs {
 		videoItem, err := w.opts.db.UploadedVideo().Get(context.Background(), job)
 		if err != nil {
 			w.opts.log.Error(msgs.ErrDBGetAll, logger.Error(err))
@@ -120,7 +120,7 @@ func (w *workerPools) Upload() {
 
 		filePath := w.opts.cfg.OutputDir + "/" + videoItem.MovieSlug
 		s3link := fmt.Sprintf("s3://%s/%ss/%s", w.opts.cfg.BucketName,
-			videoItem.Type, videoItem.MovieSlug)
+			"temp_upload", videoItem.MovieSlug)
 
 		err = w.opts.transcoder.UploadToS3(filePath, s3link)
 		if err != nil {

@@ -122,8 +122,8 @@ func (t *transcoderStruct) GenerateMasterPlaylist(opts folder.GenerateMasterOpts
 	return nil
 }
 
-func (t *transcoderStruct) UploadToS3() error {
-	err := t.cloud.UploadToS3()
+func (t *transcoderStruct) UploadToS3(input, output string) error {
+	err := t.cloud.UploadToS3(input, output)
 	if err != nil {
 		t.log.Error("failed to upload to cloud")
 		return err
