@@ -16,11 +16,11 @@ type Cronjob struct {
 	cfg     config.Config
 	cronJob *cron.Cron
 	db      storage.StorageI
-	worker  worker.WorkerPools
+	worker  worker.Worker
 }
 
 func NewCronjob(log logger.Logger, cfg config.Config,
-	cron *cron.Cron, db storage.StorageI, worker worker.WorkerPools) *Cronjob {
+	cron *cron.Cron, db storage.StorageI, worker worker.Worker) *Cronjob {
 	return &Cronjob{
 		cfg:     cfg,
 		log:     log,

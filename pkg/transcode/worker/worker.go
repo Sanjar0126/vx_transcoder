@@ -11,75 +11,106 @@ import (
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/logger"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/msgs"
 	transcoder "gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/transcode"
-	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/transcode/audio"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/transcode/folder"
-	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/transcode/subtitle"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/transcode/utils"
-	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/transcode/video"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/storage"
 )
 
-type WorkerPools struct {
-	JobsMap map[string]struct{} // nolint
-
-	FolderJobs        chan string
-	AudioJobs         chan string
-	VideoJobs         chan string
-	SubtitleJobs      chan string
-	MasterInfoJobs    chan string
-	ObjectStorageJobs chan string
-
-	Opts Opts
+type Worker interface {
+	DistributeJobs(objs []*models.UploadedVideoFull)
+	MasterGenerate()
+	VideoInfo()
+	SubtitleInfo()
+	AudioInfo()
+	CreateFolder()
 }
 
-type Opts struct {
-	Generator folder.FileFolderGenerator
-	VideoExt  video.VideoExtracter
-	AudioExt  audio.AudioExtracter
-	SubExt    subtitle.SubtitleExtracter
+func NewWorker(transcoder transcoder.Transcoder, log logger.Logger,
+	cfg *config.Config, db storage.StorageI) Worker {
+	workerPools := &workerPools{
+		jobsMap:           make(map[string]struct{}),
+		folderJobs:        make(chan string, config.JobCount),
+		audioJobs:         make(chan string, config.JobCount),
+		videoJobs:         make(chan string, config.JobCount),
+		subtitleJobs:      make(chan string, config.JobCount),
+		masterFileJobs:    make(chan string, config.JobCount),
+		objectStorageJobs: make(chan string, config.JobCount),
+		opts: opts{
+			transcoder: transcoder,
+			log:        log,
+			cfg:        cfg,
+			db:         db,
+		},
+	}
 
-	Transcoder transcoder.Transcoder
+	initializeGoroutines(workerPools)
 
-	Log logger.Logger
-	Cfg *config.Config
-	DB  storage.StorageI
+	return workerPools
 }
 
-func (w *WorkerPools) DistributeJobs(objs []*models.UploadedVideoFull) {
+type workerPools struct {
+	jobsMap map[string]struct{} // nolint
+
+	folderJobs        chan string
+	audioJobs         chan string
+	videoJobs         chan string
+	subtitleJobs      chan string
+	masterFileJobs    chan string
+	objectStorageJobs chan string
+
+	opts opts
+}
+
+type opts struct {
+	transcoder transcoder.Transcoder
+	log        logger.Logger
+	cfg        *config.Config
+	db         storage.StorageI
+}
+
+func initializeGoroutines(workerPool *workerPools) {
+	go workerPool.CreateFolder()
+	go workerPool.AudioInfo()
+	go workerPool.SubtitleInfo()
+	go workerPool.VideoInfo()
+	go workerPool.MasterGenerate()
+}
+
+func (w *workerPools) DistributeJobs(objs []*models.UploadedVideoFull) {
 	for _, item := range objs {
-		if _, exists := w.JobsMap[item.ID]; exists {
-			w.Opts.Log.Info("already exists in queue")
+		if _, exists := w.jobsMap[item.ID]; exists {
+			w.opts.log.Info("already exists in queue")
 		} else {
-			w.JobsMap[item.ID] = struct{}{}
+			w.jobsMap[item.ID] = struct{}{}
 		}
 
 		switch item.Stage {
 		case config.NewStage:
-			w.FolderJobs <- item.ID
+			w.folderJobs <- item.ID
 		case config.AudioStage:
-			w.AudioJobs <- item.ID
+			w.audioJobs <- item.ID
 		case config.VideoStage:
-			w.VideoJobs <- item.ID
+			w.videoJobs <- item.ID
 		case config.SubtitleStage:
-			w.SubtitleJobs <- item.ID
+			w.subtitleJobs <- item.ID
 		case config.MasterStage:
-			w.MasterInfoJobs <- item.ID
+			w.masterFileJobs <- item.ID
 		default:
-			w.Opts.Log.Info("NOT FOUND STAGE exiting...")
+			w.opts.log.Info("NOT FOUND STAGE exiting...")
 		}
 	}
 }
 
-func (w *WorkerPools) MasterGenerate() {
-	for job := range w.MasterInfoJobs {
-		videoItem, err := w.Opts.DB.UploadedVideo().Get(context.Background(), job)
+func (w *workerPools) MasterGenerate() {
+	for job := range w.masterFileJobs {
+		videoItem, err := w.opts.db.UploadedVideo().Get(context.Background(), job)
 		if err != nil {
-			w.Opts.Log.Error(msgs.ErrDBGetAll, logger.Error(err))
+			w.opts.log.Error(msgs.ErrDBGetAll, logger.Error(err))
 			continue
 		}
 
 		if videoItem.Stage != config.MasterStage {
-			w.Opts.Log.Error(msgs.WrongStage)
+			w.opts.log.Error(msgs.WrongStage)
 			continue
 		}
 
@@ -95,7 +126,7 @@ func (w *WorkerPools) MasterGenerate() {
 			resolutions = utils.GetResolution(videoItem.Videos[0])
 		}
 
-		err = w.Opts.Generator.GenerateMasterPlaylist(folder.GenerateMasterOpts{
+		err = w.opts.transcoder.GenerateMasterPlaylist(folder.GenerateMasterOpts{
 			AudioList:      audioList,
 			SubtitleList:   subtitleList,
 			ResolutionList: resolutions,
@@ -103,31 +134,31 @@ func (w *WorkerPools) MasterGenerate() {
 			Slug:           videoItem.MovieSlug,
 		})
 		if err != nil {
-			w.Opts.Log.Error("error while generating master playlist", logger.Error(err))
+			w.opts.log.Error("error while generating master playlist", logger.Error(err))
 			continue
 		}
 
 		err = w.updateStage(videoItem.ID, config.StagesMatrix[videoItem.Stage])
 		if err != nil {
-			w.Opts.Log.Error(msgs.ErrUpdStage, logger.Error(err))
+			w.opts.log.Error(msgs.ErrUpdStage, logger.Error(err))
 			return
 		}
 
-		delete(w.JobsMap, job)
+		delete(w.jobsMap, job)
 	}
 }
 
-func (w *WorkerPools) VideoInfo() {
+func (w *workerPools) VideoInfo() {
 out:
-	for job := range w.VideoJobs {
-		videoItem, err := w.Opts.DB.UploadedVideo().Get(context.Background(), job)
+	for job := range w.videoJobs {
+		videoItem, err := w.opts.db.UploadedVideo().Get(context.Background(), job)
 		if err != nil {
-			w.Opts.Log.Error(msgs.ErrDBGetAll, logger.Error(err))
+			w.opts.log.Error(msgs.ErrDBGetAll, logger.Error(err))
 			continue
 		}
 
 		if videoItem.Stage != config.VideoStage {
-			w.Opts.Log.Error(msgs.WrongStage)
+			w.opts.log.Error(msgs.WrongStage)
 			continue
 		}
 
@@ -138,7 +169,7 @@ out:
 			resolutionList := utils.GetResolution(stream)
 
 			for _, resolution := range resolutionList {
-				err = w.Opts.VideoExt.ResizeVideo(ffmpeg.ResizeVideoArgs{
+				err = w.opts.transcoder.ResizeVideo(ffmpeg.ResizeVideoArgs{
 					Slug:        videoItem.MovieSlug,
 					Input:       inputPath,
 					Width:       strconv.Itoa(resolution.Width),
@@ -147,7 +178,7 @@ out:
 					InputObject: stream,
 				})
 				if err != nil {
-					w.Opts.Log.Error("error while extracting video", logger.Error(err))
+					w.opts.log.Error("error while extracting video", logger.Error(err))
 					continue out
 				}
 			}
@@ -155,24 +186,24 @@ out:
 
 		err = w.updateStage(videoItem.ID, config.StagesMatrix[videoItem.Stage])
 		if err != nil {
-			w.Opts.Log.Error(msgs.ErrUpdStage, logger.Error(err))
+			w.opts.log.Error(msgs.ErrUpdStage, logger.Error(err))
 			return
 		}
 
-		delete(w.JobsMap, job)
+		delete(w.jobsMap, job)
 	}
 }
 
-func (w *WorkerPools) SubtitleInfo() {
-	for job := range w.SubtitleJobs {
-		videoItem, err := w.Opts.DB.UploadedVideo().Get(context.Background(), job)
+func (w *workerPools) SubtitleInfo() {
+	for job := range w.subtitleJobs {
+		videoItem, err := w.opts.db.UploadedVideo().Get(context.Background(), job)
 		if err != nil {
-			w.Opts.Log.Error(msgs.ErrDBGetAll, logger.Error(err))
+			w.opts.log.Error(msgs.ErrDBGetAll, logger.Error(err))
 			continue
 		}
 
 		if videoItem.Stage != config.SubtitleStage {
-			w.Opts.Log.Error(msgs.WrongStage)
+			w.opts.log.Error(msgs.WrongStage)
 			continue
 		}
 
@@ -181,34 +212,34 @@ func (w *WorkerPools) SubtitleInfo() {
 
 		for idx, stream := range videoItem.Subtitles {
 			lang := utils.GetTag(stream.Tags, idx).Language
-			err = w.Opts.SubExt.ExtractSubtitle(inputPath, lang, videoItem.MovieSlug, idx)
+			err = w.opts.transcoder.ExtractSubtitle(inputPath, lang, videoItem.MovieSlug, idx)
 
 			if err != nil {
-				w.Opts.Log.Error("error while extracting audio", logger.Error(err))
+				w.opts.log.Error("error while extracting audio", logger.Error(err))
 				continue
 			}
 		}
 
 		err = w.updateStage(videoItem.ID, config.StagesMatrix[videoItem.Stage])
 		if err != nil {
-			w.Opts.Log.Error(msgs.ErrUpdStage, logger.Error(err))
+			w.opts.log.Error(msgs.ErrUpdStage, logger.Error(err))
 			return
 		}
 
-		delete(w.JobsMap, job)
+		delete(w.jobsMap, job)
 	}
 }
 
-func (w *WorkerPools) AudioInfo() {
-	for job := range w.AudioJobs {
-		videoItem, err := w.Opts.DB.UploadedVideo().Get(context.Background(), job)
+func (w *workerPools) AudioInfo() {
+	for job := range w.audioJobs {
+		videoItem, err := w.opts.db.UploadedVideo().Get(context.Background(), job)
 		if err != nil {
-			w.Opts.Log.Error(msgs.ErrDBGetAll, logger.Error(err))
+			w.opts.log.Error(msgs.ErrDBGetAll, logger.Error(err))
 			continue
 		}
 
 		if videoItem.Stage != config.AudioStage {
-			w.Opts.Log.Error(msgs.WrongStage)
+			w.opts.log.Error(msgs.WrongStage)
 			continue
 		}
 
@@ -217,34 +248,34 @@ func (w *WorkerPools) AudioInfo() {
 
 		for idx, stream := range videoItem.Audios {
 			lang := utils.GetTag(stream.Tags, idx).Language
-			err = w.Opts.AudioExt.ExtractAudio(inputPath, lang, videoItem.MovieSlug, idx)
+			err = w.opts.transcoder.ExtractAudio(inputPath, lang, videoItem.MovieSlug, idx)
 
 			if err != nil {
-				w.Opts.Log.Error("error while extracting audio", logger.Error(err))
+				w.opts.log.Error("error while extracting audio", logger.Error(err))
 				continue
 			}
 		}
 
 		err = w.updateStage(videoItem.ID, config.StagesMatrix[videoItem.Stage])
 		if err != nil {
-			w.Opts.Log.Error(msgs.ErrUpdStage, logger.Error(err))
+			w.opts.log.Error(msgs.ErrUpdStage, logger.Error(err))
 			return
 		}
 
-		delete(w.JobsMap, job)
+		delete(w.jobsMap, job)
 	}
 }
 
-func (w *WorkerPools) CreateFolder() {
-	for job := range w.FolderJobs {
-		videoItem, err := w.Opts.DB.UploadedVideo().Get(context.Background(), job)
+func (w *workerPools) CreateFolder() {
+	for job := range w.folderJobs {
+		videoItem, err := w.opts.db.UploadedVideo().Get(context.Background(), job)
 		if err != nil {
-			w.Opts.Log.Error(msgs.ErrDBGetAll, logger.Error(err))
+			w.opts.log.Error(msgs.ErrDBGetAll, logger.Error(err))
 			continue
 		}
 
 		if videoItem.Stage != config.NewStage {
-			w.Opts.Log.Error(msgs.WrongStage)
+			w.opts.log.Error(msgs.WrongStage)
 			continue
 		}
 
@@ -253,7 +284,7 @@ func (w *WorkerPools) CreateFolder() {
 
 		videos, audios, subtitles, err := w.extractLayers(inputPath)
 		if err != nil {
-			w.Opts.Log.Error("error while extracting info of video", logger.Error(err))
+			w.opts.log.Error("error while extracting info of video", logger.Error(err))
 			continue
 		}
 
@@ -261,19 +292,19 @@ func (w *WorkerPools) CreateFolder() {
 		subtitleList := utils.GetLangArrayString(subtitles)
 		qualityList := utils.GetVideosArrayString(videos)
 
-		err = w.Opts.Generator.GenerateFilesDirectory(folder.FolderOpts{
-			OutputPath:   w.Opts.Cfg.OutputDir + "/" + videoItem.MovieSlug,
+		err = w.opts.transcoder.GenerateFilesDirectory(folder.FolderOpts{
+			OutputPath:   w.opts.cfg.OutputDir + "/" + videoItem.MovieSlug,
 			AudioList:    audioList,
 			SubtitleList: subtitleList,
 			VideoList:    qualityList,
-			ScriptPath:   w.Opts.Cfg.ScriptsFolder,
+			ScriptPath:   w.opts.cfg.ScriptsFolder,
 		})
 		if err != nil {
-			w.Opts.Log.Error("error while creating folders", logger.Error(err))
+			w.opts.log.Error("error while creating folders", logger.Error(err))
 			continue
 		}
 
-		err = w.Opts.DB.UploadedVideo().UpdateStreams(context.Background(), models.UpdateStreams{
+		err = w.opts.db.UploadedVideo().UpdateStreams(context.Background(), models.UpdateStreams{
 			AudioStreams:    audios,
 			VideoStreams:    videos,
 			SubtitleStreams: subtitles,
@@ -281,16 +312,16 @@ func (w *WorkerPools) CreateFolder() {
 			ID:              videoItem.ID,
 		})
 		if err != nil {
-			w.Opts.Log.Error(msgs.ErrUpdStage, logger.Error(err))
+			w.opts.log.Error(msgs.ErrUpdStage, logger.Error(err))
 			return
 		}
 
-		delete(w.JobsMap, job)
+		delete(w.jobsMap, job)
 	}
 }
 
-func (w *WorkerPools) updateStage(id, stage string) error {
-	err := w.Opts.DB.UploadedVideo().Update(context.Background(), models.UploadVideoRequest{
+func (w *workerPools) updateStage(id, stage string) error {
+	err := w.opts.db.UploadedVideo().Update(context.Background(), models.UploadVideoRequest{
 		ID:    id,
 		Stage: stage,
 	})
@@ -298,19 +329,19 @@ func (w *WorkerPools) updateStage(id, stage string) error {
 	return err
 }
 
-func (w *WorkerPools) extractLayers(inputPath string) ([]ffmpeg.Stream, []ffmpeg.Stream,
+func (w *workerPools) extractLayers(inputPath string) ([]ffmpeg.Stream, []ffmpeg.Stream,
 	[]ffmpeg.Stream, error) {
-	videos, err := w.Opts.VideoExt.ExtractInfos(inputPath)
+	videos, err := w.opts.transcoder.ExtractInfos(inputPath)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
-	audios, err := w.Opts.AudioExt.ExtractLayers(inputPath)
+	audios, err := w.opts.transcoder.ExtractAudioLayers(inputPath)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
-	subtitles, err := w.Opts.SubExt.GetSubtitleLayers(inputPath)
+	subtitles, err := w.opts.transcoder.GetSubtitleLayers(inputPath)
 	if err != nil {
 		return nil, nil, nil, err
 	}

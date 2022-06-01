@@ -1,22 +1,30 @@
 package cloud
 
 import (
-	transcoder "gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/transcode"
+	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/config"
+	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/logger"
 )
 
 type ObjectUploader interface {
-	UploadToS3()
+	UploadToS3() error
 }
 
-type ObjectStorage transcoder.TranscoderStruct
+type ObjectStorage struct {
+	cfg *config.Config
+	log logger.Logger
+}
 
-//func NewObjectUploader(cfg *config.Config, log logger.Logger) ObjectUploader {
-//	return &ObjectStorage{
-//		cfg: cfg,
-//		log: log,
-//	}
-//}
+func NewObjectUploader(cfg *config.Config, log logger.Logger) ObjectUploader {
+	return &ObjectStorage{
+		cfg: cfg,
+		log: log,
+	}
+}
 
-func (o *ObjectStorage) UploadToS3() {
+func (o *ObjectStorage) UploadToS3() error {
+	var (
+		err error
+	)
 
+	return err
 }
