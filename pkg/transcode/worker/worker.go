@@ -3,7 +3,13 @@ package worker
 import (
 	"context"
 	"fmt"
+	"os"
 	"strconv"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	awsSession "github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/config"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/models"
@@ -23,6 +29,7 @@ type Worker interface {
 	SubtitleInfo()
 	AudioInfo()
 	CreateFolder()
+	Upload()
 }
 
 func NewWorker(transcoder transcoder.Transcoder, log logger.Logger,
@@ -97,6 +104,42 @@ func (w *workerPools) DistributeJobs(objs []*models.UploadedVideoFull) {
 			w.masterFileJobs <- item.ID
 		default:
 			w.opts.log.Info("NOT FOUND STAGE exiting...")
+		}
+	}
+}
+
+func (w *workerPools) Upload(dbObjs []*models.UploadedVideoFull) {
+	session, err := awsSession.NewSession(&aws.Config{
+		Region: aws.String(w.opts.cfg.AwsRegion),
+		Credentials: credentials.NewStaticCredentials(w.opts.cfg.AwsID,
+			w.opts.cfg.AwsSecret, ""),
+	})
+	if err != nil {
+		w.opts.log.Error("error while creating S3 session")
+		return
+	}
+
+	uploader := s3manager.NewUploader(session)
+
+	for _, dbObj := range dbObjs {
+		filePath := w.opts.cfg.OutputDir + "/" + dbObj.MovieSlug
+
+		path := fmt.Sprintf("%s/%s", "temp_upload", dbObj.MovieSlug)
+
+		file, err := os.Open(filePath)
+		if err != nil {
+			w.opts.log.Error("error while opening file")
+			return
+		}
+
+		_, err = uploader.Upload(&s3manager.UploadInput{
+			Bucket: aws.String(w.opts.cfg.BucketName),
+			Key:    aws.String(path),
+			Body:   file,
+		})
+		if err != nil {
+			w.opts.log.Error("error while uploading")
+			return
 		}
 	}
 }

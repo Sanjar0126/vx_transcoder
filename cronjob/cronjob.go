@@ -37,8 +37,25 @@ func (c *Cronjob) Run() {
 		panic(err)
 	}
 
+	_, err = c.cronJob.AddFunc("@every 5s", c.upload)
+	if err != nil {
+		c.log.Error("failed to register cronjob", logger.Error(err))
+		panic(err)
+	}
+
 	c.log.Info("cronjob is registered")
 	c.cronJob.Start()
+}
+
+func (c *Cronjob) upload() {
+	dbRes, err := c.db.UploadedVideo().GetAll(context.Background(), models.UploadedVideoFilter{
+		Stages: []string{config.UploadStage},
+	})
+	if err != nil {
+		c.log.Error("error while getting list of videos", logger.Error(err))
+	}
+
+	c.worker.DistributeJobs(dbRes)
 }
 
 func (c *Cronjob) transcode() {

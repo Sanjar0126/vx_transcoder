@@ -57,8 +57,8 @@ func Load() Config { //nolint
 
 	config.RPCPort = cast.ToString(env("RPC_PORT", ":9112"))
 
-	config.AwsID = cast.ToString(env("AWS_ID", "sample_aws_id"))
-	config.AwsSecret = cast.ToString(env("AWS_SECRET", "sample_aws_secret"))
+	config.AwsID = cast.ToString(env("AWS_ID", "AKIAIITHK7MFJRBTRQTA"))
+	config.AwsSecret = cast.ToString(env("AWS_SECRET", "ISsDlkXH5EKI2yjfy8z3Z+GxT9fc91GY7rqW4r/M"))
 
 	config.MongoDBHost = cast.ToString(env("MONGO_DB_HOST", "localhost"))
 	config.MongoDBPort = cast.ToInt(env("MONGO_DB_PORT", "27017"))

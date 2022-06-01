@@ -1,14 +1,14 @@
 package config
 
 var (
-	EnvDevelop             = "develop"
-	SlugLength         int = 30
-	Langs                  = []string{"ru", "en", "uz"}
-	LangUz                 = "uz"
-	LangRu                 = "ru"
-	LangEn                 = "en"
-	ContentServicePort     = 9100
-	RabbitMQPort           = 5672
+	EnvDevelop         = "develop"
+	SlugLength         = 30
+	Langs              = []string{"ru", "en", "uz"}
+	LangUz             = "uz"
+	LangRu             = "ru"
+	LangEn             = "en"
+	ContentServicePort = 9100
+	RabbitMQPort       = 5672
 
 	StagesMatrix = map[string]string{
 		"new":      "audio",
@@ -16,6 +16,7 @@ var (
 		"subtitle": "video",
 		"video":    "master",
 		"master":   "upload",
+		"upload":   "finished",
 	}
 
 	StagesArray = []string{"new", "audio", "video", "subtitle", "master"}
@@ -29,4 +30,6 @@ var (
 	SubtitleStage = "subtitle"
 	VideoStage    = "video"
 	MasterStage   = "master"
+	UploadStage   = "upload"
+	FinishedStage = "finished"
 )
