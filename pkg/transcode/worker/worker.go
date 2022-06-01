@@ -118,14 +118,20 @@ func (w *workerPools) Upload() {
 			continue
 		}
 
-		filePath := w.opts.cfg.OutputDir + "/" + videoItem.MovieSlug
-		s3link := fmt.Sprintf("s3://%s/%ss/%s", w.opts.cfg.BucketName,
-			"temp_upload", videoItem.MovieSlug)
+		filePath := fmt.Sprintf("%s/%s/", w.opts.cfg.OutputDir, videoItem.MovieSlug)
+		s3link := fmt.Sprintf("s3://%s/%ss/%s/", w.opts.cfg.BucketName,
+			videoItem.Type, videoItem.MovieSlug)
 
 		err = w.opts.transcoder.UploadToS3(filePath, s3link)
 		if err != nil {
 			w.opts.log.Error("error while upload", logger.Error(err))
 			continue
+		}
+
+		err = w.updateStage(videoItem.ID, config.StagesMatrix[videoItem.Stage])
+		if err != nil {
+			w.opts.log.Error(msgs.ErrUpdStage, logger.Error(err))
+			return
 		}
 
 		delete(w.jobsMap, job)

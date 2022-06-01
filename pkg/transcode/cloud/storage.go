@@ -35,6 +35,7 @@ func (o *ObjectStorage) UploadToS3(input, out string) error {
 	_, err := exec.Command(
 		"/bin/sh",
 		script,
+		input,
 		out,
 	).Output()
 
