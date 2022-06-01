@@ -3,7 +3,6 @@ module gitlab.com/samandarobidovfrd/voxe_transcoding_service
 go 1.17
 
 require (
-	github.com/aws/aws-sdk-go v1.44.25
 	github.com/golang/protobuf v1.5.2
 	github.com/joho/godotenv v1.4.0
 	github.com/robfig/cron/v3 v3.0.1
@@ -19,7 +18,6 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
-	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect

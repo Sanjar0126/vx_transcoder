@@ -64,7 +64,7 @@ func (a *AudioAPI) ExtractAudio(input, lang, slug string, index int) error {
 		return errors.New("failed to extract audio")
 	}
 
-	a.log.Info("extract output", logger.String("output", string("")))
+	a.log.Info("extract output", logger.String("output", ""))
 
 	return nil
 }

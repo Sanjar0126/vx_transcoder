@@ -3,13 +3,7 @@ package worker
 import (
 	"context"
 	"fmt"
-	"os"
 	"strconv"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	awsSession "github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/config"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/models"
@@ -124,35 +118,13 @@ func (w *workerPools) Upload() {
 			continue
 		}
 
-		session, err := awsSession.NewSession(&aws.Config{
-			Region: aws.String(w.opts.cfg.AwsRegion),
-			Credentials: credentials.NewStaticCredentials(w.opts.cfg.AwsID,
-				w.opts.cfg.AwsSecret, ""),
-		})
-		if err != nil {
-			w.opts.log.Error("error while creating S3 session")
-			continue
-		}
-
-		uploader := s3manager.NewUploader(session)
-
 		filePath := w.opts.cfg.OutputDir + "/" + videoItem.MovieSlug
+		s3link := fmt.Sprintf("s3://%s/%ss/%s", w.opts.cfg.BucketName,
+			videoItem.Type, videoItem.MovieSlug)
 
-		path := fmt.Sprintf("%s/%s", "temp_upload", videoItem.MovieSlug)
-
-		file, err := os.Open(filePath)
+		err = w.opts.transcoder.UploadToS3(filePath, s3link)
 		if err != nil {
-			w.opts.log.Error("error while opening file")
-			continue
-		}
-
-		_, err = uploader.Upload(&s3manager.UploadInput{
-			Bucket: aws.String(w.opts.cfg.BucketName),
-			Key:    aws.String(path),
-			Body:   file,
-		})
-		if err != nil {
-			w.opts.log.Error("error while uploading")
+			w.opts.log.Error("error while upload", logger.Error(err))
 			continue
 		}
 
