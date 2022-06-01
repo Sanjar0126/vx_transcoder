@@ -32,4 +32,6 @@ var (
 	MasterStage   = "master"
 	UploadStage   = "upload"
 	FinishedStage = "finished"
+
+	Episode = "episode"
 )
