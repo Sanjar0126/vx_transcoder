@@ -46,7 +46,7 @@ func (a *AudioAPI) ExtractAudio(input, lang, slug string, index int) error {
 		extractAudioScript = fmt.Sprintf("%s%s", a.cfg.ScriptsFolder, "/ffmpeg/extract_audio.sh")
 	)
 
-	a.log.Info("extracting audio info", logger.String("input", input), logger.String("lang", lang))
+	a.log.Info("extracting audio info", logger.String("slug", slug), logger.String("lang", lang))
 
 	cmd, err := exec.Command(
 		"/bin/sh",

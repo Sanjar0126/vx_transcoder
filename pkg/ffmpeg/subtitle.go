@@ -45,7 +45,7 @@ func (s *SubtitleAPI) ExtractSubtitle(input, lang, slug string, index int) error
 			"%s%s", s.cfg.ScriptsFolder, "/ffmpeg/extract_subtitle.sh")
 	)
 
-	s.log.Info("extracting audio info", logger.String("input", input), logger.String("lang", lang))
+	s.log.Info("extracting audio info", logger.String("slug", slug), logger.String("lang", lang))
 
 	out, err := exec.Command(
 		"/bin/sh",

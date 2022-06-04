@@ -56,6 +56,8 @@ func (v *VideoAPI) ResizeVideo(args ResizeVideoArgs) error {
 		resizingWidthHeight = fmt.Sprintf("%s:-2", args.Width)
 	)
 
+	v.log.Info("resizing video", logger.String("slug", args.Slug))
+
 	out, err := exec.Command(
 		"/bin/sh",
 		resizeVideoScript,
