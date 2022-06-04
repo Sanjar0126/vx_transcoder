@@ -65,7 +65,12 @@ func (up *uploadedVideoStorage) Update(ctx context.Context, req models.UploadVid
 	}
 
 	if req.Failed {
-		update = bson.M{"$set": bson.M{"failed": true}}
+		update = bson.M{
+			"$set": bson.M{
+				"failed":    true,
+				"error_msg": req.ErrorMsg,
+			},
+		}
 	}
 
 	err := up.collection.FindOneAndUpdate(ctx, bson.M{models.IdLiteral: objId}, update)

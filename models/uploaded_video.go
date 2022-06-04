@@ -19,6 +19,7 @@ type UploadVideoRequest struct {
 	Stage         string `json:"stage" bson:"stage,omitempty"`
 	Path          string `json:"path" bson:"path,omitempty"`
 	Failed        bool   `bson:"failed,omitempty"`
+	ErrorMsg      string `bson:"error_msg"`
 	Extension     string `json:"extension" bson:"extension"`
 }
 
