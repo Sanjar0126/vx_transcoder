@@ -1,7 +1,6 @@
 package folder
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -99,7 +98,7 @@ func (f *FolderObject) GenerateMasterPlaylist(opts GenerateMasterOpts) error {
 	file, err := os.Create(outputPath + "/master.m3u8")
 	if err != nil {
 		f.log.Error("creating master.m3u8 file error", logger.Error(err))
-		return errors.New("failed at generating master playlist")
+		return err
 	}
 
 	defer file.Close()
@@ -107,13 +106,13 @@ func (f *FolderObject) GenerateMasterPlaylist(opts GenerateMasterOpts) error {
 	_, err = file.WriteString(fileContent)
 	if err != nil {
 		f.log.Error("writing to master.m3u8 file error", logger.Error(err))
-		return errors.New("failed at generating master playlist")
+		return err
 	}
 
 	err = file.Sync()
 	if err != nil {
 		f.log.Error("syncing master.m3u8 file error", logger.Error(err))
-		return errors.New("failed at generating master playlist")
+		return err
 	}
 
 	return nil

@@ -158,8 +158,7 @@ func (w *workerPools) MasterGenerate() {
 			InputPath:      inputPath,
 			Slug:           videoItem.MovieSlug,
 		})
-		if err != nil {
-			w.opts.log.Error("error while generating master playlist", logger.Error(err))
+		if w.ffmpegError(videoItem.ID, "error while generating master playlist", err) {
 			continue
 		}
 
@@ -202,8 +201,7 @@ out:
 					BitRate:     resolution.BitRate,
 					InputObject: stream,
 				})
-				if err != nil {
-					w.opts.log.Error("error while extracting video", logger.Error(err))
+				if w.ffmpegError(videoItem.ID, "error while extracting video", err) {
 					continue out
 				}
 			}
@@ -239,8 +237,7 @@ func (w *workerPools) SubtitleInfo() {
 			lang := utils.GetTag(stream.Tags, idx).Language
 			err = w.opts.transcoder.ExtractSubtitle(inputPath, lang, videoItem.MovieSlug, idx)
 
-			if err != nil {
-				w.opts.log.Error("error while extracting audio", logger.Error(err))
+			if w.ffmpegError(videoItem.ID, "error while extracting audio", err) {
 				continue
 			}
 		}
@@ -277,8 +274,7 @@ func (w *workerPools) AudioInfo() {
 			lang := utils.GetTag(stream.Tags, idx).Language
 			err = w.opts.transcoder.ExtractAudio(inputPath, lang, videoItem.MovieSlug, idx)
 
-			if err != nil {
-				w.opts.log.Error("error while extracting audio", logger.Error(err))
+			if w.ffmpegError(videoItem.ID, "error while extracting info of audio", err) {
 				continue
 			}
 		}
@@ -310,8 +306,7 @@ func (w *workerPools) CreateFolder() {
 			videoItem.Extension)
 
 		videos, audios, subtitles, err := w.extractLayers(inputPath)
-		if err != nil {
-			w.opts.log.Error("error while extracting info of video", logger.Error(err))
+		if w.ffmpegError(videoItem.ID, "error while extracting info of video", err) {
 			continue
 		}
 
@@ -347,13 +342,33 @@ func (w *workerPools) CreateFolder() {
 	}
 }
 
+func (w *workerPools) ffmpegError(id, msg string, err error) bool {
+	if err != nil {
+		w.opts.log.Error(msg, logger.Error(err))
+
+		dbErr := w.updateFailure(id)
+		if dbErr != nil {
+			w.opts.log.Error(msgs.ErrUpdFail, logger.Error(err))
+		}
+
+		return true
+	}
+
+	return false
+}
+
+func (w *workerPools) updateFailure(id string) error {
+	return w.opts.db.UploadedVideo().Update(context.Background(), models.UploadVideoRequest{
+		ID:     id,
+		Failed: true,
+	})
+}
+
 func (w *workerPools) updateStage(id, stage string) error {
-	err := w.opts.db.UploadedVideo().Update(context.Background(), models.UploadVideoRequest{
+	return w.opts.db.UploadedVideo().Update(context.Background(), models.UploadVideoRequest{
 		ID:    id,
 		Stage: stage,
 	})
-
-	return err
 }
 
 func (w *workerPools) extractLayers(inputPath string) ([]ffmpeg.Stream, []ffmpeg.Stream,

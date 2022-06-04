@@ -12,4 +12,5 @@ var (
 	ErrDBGet                   = "failed to get object in database"
 	ErrUpdStage                = "error while updating stage"
 	WrongStage                 = "wrong stage"
+	ErrUpdFail                 = "error while updating failure"
 )

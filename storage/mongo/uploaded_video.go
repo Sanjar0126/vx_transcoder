@@ -38,6 +38,7 @@ func (up *uploadedVideoStorage) Create(ctx context.Context, req models.UploadedV
 		EpisodeNumber: req.EpisodeNumber,
 		CreatedAt:     time.Now(),
 		UpdatedAt:     time.Now(),
+		Failed:        false,
 	})
 
 	if err != nil {
@@ -50,13 +51,24 @@ func (up *uploadedVideoStorage) Create(ctx context.Context, req models.UploadedV
 }
 
 func (up *uploadedVideoStorage) Update(ctx context.Context, req models.UploadVideoRequest) error {
+	var (
+		update = bson.M{}
+	)
+
 	objId, objErr := primitive.ObjectIDFromHex(req.ID)
 	if objErr != nil {
 		return objErr
 	}
 
-	err := up.collection.FindOneAndUpdate(ctx, bson.M{models.IdLiteral: objId},
-		bson.M{"$set": bson.M{"stage": req.Stage}})
+	if req.Stage != "" {
+		update = bson.M{"$set": bson.M{"stage": req.Stage}}
+	}
+
+	if req.Failed {
+		update = bson.M{"$set": bson.M{"failed": true}}
+	}
+
+	err := up.collection.FindOneAndUpdate(ctx, bson.M{models.IdLiteral: objId}, update)
 
 	return err.Err()
 }
@@ -88,6 +100,7 @@ func (up *uploadedVideoStorage) GetAll(ctx context.Context,
 		"stage": bson.M{
 			"$in": filter.Stages,
 		},
+		"failed": false,
 	})
 	if err != nil {
 		return response, err
