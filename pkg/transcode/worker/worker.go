@@ -28,7 +28,7 @@ type Worker interface {
 
 func NewWorker(transcoder transcoder.Transcoder, log logger.Logger,
 	cfg *config.Config, db storage.StorageI) Worker {
-	workerPools := &workerPools{
+	return &workerPools{
 		jobsMap:           make(map[string]struct{}),
 		folderJobs:        make(chan string, config.JobCount),
 		audioJobs:         make(chan string, config.JobCount),
@@ -43,10 +43,6 @@ func NewWorker(transcoder transcoder.Transcoder, log logger.Logger,
 			db:         db,
 		},
 	}
-
-	initializeGoroutines(workerPools)
-
-	return workerPools
 }
 
 type workerPools struct {
@@ -69,19 +65,11 @@ type opts struct {
 	db         storage.StorageI
 }
 
-func initializeGoroutines(workerPool *workerPools) {
-	go workerPool.CreateFolder()
-	go workerPool.AudioInfo()
-	go workerPool.SubtitleInfo()
-	go workerPool.VideoInfo()
-	go workerPool.MasterGenerate()
-	go workerPool.Upload()
-}
-
 func (w *workerPools) DistributeJobs(objs []*models.UploadedVideoFull) {
 	for _, item := range objs {
 		if _, exists := w.jobsMap[item.ID]; exists {
 			w.opts.log.Info("already exists in queue")
+			continue
 		} else {
 			w.jobsMap[item.ID] = struct{}{}
 		}
@@ -269,6 +257,8 @@ func (w *workerPools) SubtitleInfo() {
 
 func (w *workerPools) AudioInfo() {
 	for job := range w.audioJobs {
+		fmt.Println(job)
+
 		videoItem, err := w.opts.db.UploadedVideo().Get(context.Background(), job)
 		if err != nil {
 			w.opts.log.Error(msgs.ErrDBGetAll, logger.Error(err))

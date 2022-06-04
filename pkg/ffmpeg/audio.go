@@ -1,7 +1,6 @@
 package ffmpeg
 
 import (
-	"errors"
 	"fmt"
 	"os/exec"
 	"strconv"
@@ -49,7 +48,7 @@ func (a *AudioAPI) ExtractAudio(input, lang, slug string, index int) error {
 
 	a.log.Info("extracting audio info", logger.String("input", input), logger.String("lang", lang))
 
-	_, err := exec.Command(
+	cmd, err := exec.Command(
 		"/bin/sh",
 		extractAudioScript,
 		input,               // input path
@@ -61,10 +60,10 @@ func (a *AudioAPI) ExtractAudio(input, lang, slug string, index int) error {
 
 	if err != nil {
 		a.log.Error("failed to extract audio", logger.Error(err))
-		return errors.New("failed to extract audio")
+		return err
 	}
 
-	a.log.Info("extract output", logger.String("output", ""))
+	a.log.Info("extract output", logger.String("output", string(cmd)))
 
 	return nil
 }

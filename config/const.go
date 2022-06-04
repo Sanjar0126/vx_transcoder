@@ -23,7 +23,7 @@ var (
 
 	JobCount = 3
 
-	InputPathTemplate = "%s%s.%s"
+	InputPathTemplate = "%s/%s.%s"
 
 	NewStage      = "new"
 	AudioStage    = "audio"

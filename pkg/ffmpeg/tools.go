@@ -14,7 +14,7 @@ func getLayers(scriptsPath, inputVideo, codecType string) ([]Stream, error) {
 		index = 0
 	)
 
-	cmd, err := exec.Command("/bin/sh", extractLayersScript, inputVideo).Output()
+	cmd, err := exec.Command("/bin/sh", extractLayersScript, inputVideo).CombinedOutput()
 	if err != nil {
 		return layerOutput.Streams, err
 	}

@@ -35,9 +35,18 @@ func main() {
 
 	workerPool := worker.NewWorker(transcoderObj, log, &cfg, storageDB)
 
+	go workerPool.CreateFolder()
+	go workerPool.AudioInfo()
+	go workerPool.SubtitleInfo()
+	go workerPool.VideoInfo()
+	go workerPool.MasterGenerate()
+	go workerPool.Upload()
+
 	c := cron.New()
 	newCronJob := cronjob.NewCronjob(log, cfg, c, storageDB, workerPool)
 	newCronJob.Run()
+
+	newCronJob.Initial()
 
 	log.Info("main: server is running", logger.String("port", cfg.RPCPort))
 
