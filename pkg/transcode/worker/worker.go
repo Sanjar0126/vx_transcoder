@@ -254,8 +254,6 @@ func (w *workerPools) SubtitleInfo() {
 
 func (w *workerPools) AudioInfo() {
 	for job := range w.audioJobs {
-		fmt.Println(job)
-
 		videoItem, err := w.opts.db.UploadedVideo().Get(context.Background(), job)
 		if err != nil {
 			w.opts.log.Error(msgs.ErrDBGetAll, logger.Error(err))

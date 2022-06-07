@@ -10,7 +10,13 @@ import (
 
 func GetVideosArrayString(streams []fffmpeg.Stream) string {
 	var (
-		resolutions       = []int{240, 360, 480, 720, 1080}
+		resolutions = []fffmpeg.Resolution{
+			{Width: 320, Height: 240},
+			{Width: 640, Height: 360},
+			{Width: 854, Height: 480},
+			{Width: 1280, Height: 720},
+			{Width: 1920, Height: 1080},
+		}
 		resolutionStrings []string
 		ids               []int
 		removed           = false
@@ -18,30 +24,29 @@ func GetVideosArrayString(streams []fffmpeg.Stream) string {
 
 	for _, stream := range streams {
 		for index, resolution := range resolutions {
-			if resolution > stream.Height {
+			if resolution.Width > stream.Width {
 				ids = append(ids, index)
 			}
 		}
 
 		for i, idx := range ids {
-			resolutions = remove(resolutions, idx-i)
+			resolutions = append(resolutions[:idx-i], resolutions[idx-i+1:]...)
 			removed = true
 		}
 
 		if removed {
-			resolutions = append(resolutions, stream.Height)
+			resolutions = append(resolutions, fffmpeg.Resolution{
+				Width:  stream.Width,
+				Height: stream.Height,
+			})
 		}
 	}
 
 	for _, resolution := range resolutions {
-		resolutionStrings = append(resolutionStrings, fmt.Sprintf("%dp", resolution))
+		resolutionStrings = append(resolutionStrings, fmt.Sprintf("%dp", resolution.Height))
 	}
 
 	return strings.Join(resolutionStrings, ",")
-}
-
-func remove(slice []int, s int) []int {
-	return append(slice[:s], slice[s+1:]...)
 }
 
 func GetResolution(stream fffmpeg.Stream) []fffmpeg.Resolution {

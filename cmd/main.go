@@ -35,12 +35,17 @@ func main() {
 
 	workerPool := worker.NewWorker(transcoderObj, log, &cfg, storageDB)
 
-	go workerPool.CreateFolder()
-	go workerPool.AudioInfo()
-	go workerPool.SubtitleInfo()
-	go workerPool.VideoInfo()
-	go workerPool.MasterGenerate()
-	go workerPool.Upload()
+	for i := 0; i < config.JobCount; i++ {
+		go workerPool.CreateFolder()
+		go workerPool.AudioInfo()
+		go workerPool.SubtitleInfo()
+		go workerPool.VideoInfo()
+		go workerPool.MasterGenerate()
+	}
+
+	for i := 0; i < config.UploadJobCount; i++ {
+		go workerPool.Upload()
+	}
 
 	c := cron.New()
 	newCronJob := cronjob.NewCronjob(log, cfg, c, storageDB, workerPool)

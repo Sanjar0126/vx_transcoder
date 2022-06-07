@@ -66,10 +66,10 @@ func (v *VideoAPI) ResizeVideo(args ResizeVideoArgs) error {
 		args.BitRate,
 		v.defaultChunkSize,
 		outputPath,
-	).Output()
+	).CombinedOutput()
 
 	if err != nil {
-		v.log.Error("failed to extract video", logger.Error(err))
+		v.log.Error("failed to extract video", logger.Error(err), logger.String("std", string(out)))
 		return err
 	}
 
