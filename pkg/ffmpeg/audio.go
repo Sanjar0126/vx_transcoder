@@ -35,7 +35,7 @@ func (a *AudioAPI) GetAudioLayers(input string) ([]Stream, error) {
 		return nil, err
 	}
 
-	a.log.Info("audio layers are retrieved")
+	a.log.Info("audio layers are retrieved", logger.String("path", input))
 
 	return audioLayers, nil
 }

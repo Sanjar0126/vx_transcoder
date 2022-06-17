@@ -33,7 +33,7 @@ func (s *SubtitleAPI) GetSubtitleLayers(input string) ([]Stream, error) {
 		return nil, err
 	}
 
-	s.log.Info("subtitle layers are retrieved")
+	s.log.Info("subtitle layers are retrieved", logger.String("path", input))
 
 	return subtitleLayers, nil
 }

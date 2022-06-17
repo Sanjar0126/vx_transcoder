@@ -8,7 +8,7 @@ import (
 	fffmpeg "gitlab.com/samandarobidovfrd/voxe_transcoding_service/pkg/ffmpeg"
 )
 
-func GetVideosArrayString(streams []fffmpeg.Stream) string {
+func GetVideosArrayString(streams fffmpeg.Stream) string {
 	var (
 		resolutions = []fffmpeg.Resolution{
 			{Width: 320, Height: 240},
@@ -22,24 +22,22 @@ func GetVideosArrayString(streams []fffmpeg.Stream) string {
 		removed           = false
 	)
 
-	for _, stream := range streams {
-		for index, resolution := range resolutions {
-			if resolution.Width > stream.Width {
-				ids = append(ids, index)
-			}
+	for index, resolution := range resolutions {
+		if resolution.Width > streams.Width {
+			ids = append(ids, index)
 		}
+	}
 
-		for i, idx := range ids {
-			resolutions = append(resolutions[:idx-i], resolutions[idx-i+1:]...)
-			removed = true
-		}
+	for i, idx := range ids {
+		resolutions = append(resolutions[:idx-i], resolutions[idx-i+1:]...)
+		removed = true
+	}
 
-		if removed {
-			resolutions = append(resolutions, fffmpeg.Resolution{
-				Width:  stream.Width,
-				Height: stream.Height,
-			})
-		}
+	if removed {
+		resolutions = append(resolutions, fffmpeg.Resolution{
+			Width:  streams.Width,
+			Height: streams.Height,
+		})
 	}
 
 	for _, resolution := range resolutions {
@@ -99,8 +97,8 @@ func GetBitRate(width, height int) string {
 	//	return "3145728"
 	//}
 	var (
-		bpp = 0.067
-		fps = 23.9
+		bpp = 0.077
+		fps = 23.999
 	)
 
 	bitRate := float64(width) * float64(height) * bpp * fps

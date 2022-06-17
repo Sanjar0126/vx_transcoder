@@ -50,6 +50,8 @@ func (f *FolderObject) GenerateFilesDirectory(opts FolderOpts) error {
 		audios, subtitles string
 	)
 
+	f.log.Info("Started generating folders", logger.String("input", opts.OutputPath))
+
 	audios = getLanguageStringList(opts.AudioList)
 	subtitles = getLanguageStringList(opts.SubtitleList)
 
@@ -70,7 +72,7 @@ func (f *FolderObject) GenerateMasterPlaylist(opts GenerateMasterOpts) error {
 		videoContent    string
 	)
 
-	f.log.Info("Started generating master playlist")
+	f.log.Info("Started generating master playlist", logger.String("input", opts.Slug))
 
 	fileContent = masterHeader
 

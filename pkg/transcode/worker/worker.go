@@ -310,7 +310,7 @@ func (w *workerPools) CreateFolder() {
 
 		audioList := utils.GetLangArrayString(audios)
 		subtitleList := utils.GetLangArrayString(subtitles)
-		qualityList := utils.GetVideosArrayString(videos)
+		qualityList := utils.GetVideosArrayString(videos[0])
 
 		err = w.opts.transcoder.GenerateFilesDirectory(folder.FolderOpts{
 			OutputPath:   w.opts.cfg.OutputDir + "/" + videoItem.MovieSlug,

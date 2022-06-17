@@ -39,8 +39,11 @@ func main() {
 		go workerPool.CreateFolder()
 		go workerPool.AudioInfo()
 		go workerPool.SubtitleInfo()
-		go workerPool.VideoInfo()
 		go workerPool.MasterGenerate()
+	}
+
+	for i := 0; i < config.VideoResizeJobCount; i++ {
+		go workerPool.VideoInfo()
 	}
 
 	for i := 0; i < config.UploadJobCount; i++ {

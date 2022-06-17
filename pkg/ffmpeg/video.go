@@ -32,7 +32,7 @@ func (v *VideoAPI) GetVideoLayers(input string) ([]Stream, error) {
 		return nil, err
 	}
 
-	v.log.Info("video layers are retrieved", logger.Any("videos", ""))
+	v.log.Info("video layers are retrieved", logger.Any("videos", input))
 
 	return videoLayers, nil
 }
@@ -56,7 +56,8 @@ func (v *VideoAPI) ResizeVideo(args ResizeVideoArgs) error {
 		resizingWidthHeight = fmt.Sprintf("%s:-2", args.Width)
 	)
 
-	v.log.Info("resizing video", logger.String("slug", args.Slug))
+	v.log.Info("resizing video", logger.String("slug", args.Slug),
+		logger.String("resolution", args.Height))
 
 	out, err := exec.Command(
 		"/bin/sh",
@@ -73,7 +74,7 @@ func (v *VideoAPI) ResizeVideo(args ResizeVideoArgs) error {
 		return err
 	}
 
-	v.log.Info("extract output", logger.String("output", string(out)))
+	v.log.Info("extract output", logger.String("output", ""))
 
 	return nil
 }
