@@ -45,12 +45,13 @@ type ResizeVideoArgs struct {
 	Height      string
 	BitRate     string
 	InputObject Stream
+	OutputPath  string
 }
 
 func (v *VideoAPI) ResizeVideo(args ResizeVideoArgs) error {
 	var (
 		outputPath = fmt.Sprintf(
-			"%s/%s/videos/%sp/video.m3u8", v.cfg.OutputDir, args.Slug, args.Height,
+			"%s/%s/videos/%sp/video.m3u8", args.OutputPath, args.Slug, args.Height,
 		)
 
 		resizeVideoScript   = fmt.Sprintf("%s%s", v.cfg.ScriptsFolder, "/ffmpeg/resize_video.sh")

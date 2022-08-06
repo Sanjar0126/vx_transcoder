@@ -106,13 +106,7 @@ func (w *workerPools) Upload() {
 			continue
 		}
 
-		var filePath string
-
-		if videoItem.Output == "" {
-			filePath = fmt.Sprintf("%s/%s/", w.opts.cfg.OutputDir, videoItem.MovieSlug)
-		} else {
-			filePath = fmt.Sprintf("%s/%s/", videoItem.Output, videoItem.MovieSlug)
-		}
+		filePath := w.getOutputPath(videoItem.Output, videoItem.MovieSlug)
 
 		s3link := w.getS3Link(videoItem.Type, videoItem.MovieSlug, videoItem.SerialSlug)
 
@@ -157,12 +151,15 @@ func (w *workerPools) MasterGenerate() {
 			resolutions = utils.GetResolution(videoItem.Videos[0])
 		}
 
+		outputPath := w.getOutputPath(videoItem.Output, videoItem.MovieSlug)
+
 		err = w.opts.transcoder.GenerateMasterPlaylist(folder.GenerateMasterOpts{
 			AudioList:      audioList,
 			SubtitleList:   subtitleList,
 			ResolutionList: resolutions,
 			InputPath:      inputPath,
 			Slug:           videoItem.MovieSlug,
+			OutputPath:     outputPath,
 		})
 		if w.ffmpegError(videoItem.ID, "error while generating master playlist", err) {
 			continue
@@ -195,6 +192,8 @@ out:
 		inputPath := fmt.Sprintf(config.InputPathTemplate, videoItem.Path, videoItem.MovieSlug,
 			videoItem.Extension)
 
+		outputPath := w.getOutputPath(videoItem.Output, videoItem.MovieSlug)
+
 		for _, stream := range videoItem.Videos {
 			resolutionList := utils.GetResolution(stream)
 
@@ -206,6 +205,7 @@ out:
 					Height:      strconv.Itoa(resolution.Height),
 					BitRate:     resolution.BitRate,
 					InputObject: stream,
+					OutputPath:  outputPath,
 				})
 				if w.ffmpegError(videoItem.ID, "error while extracting video", err) {
 					continue out
@@ -318,8 +318,16 @@ func (w *workerPools) CreateFolder() {
 		subtitleList := utils.GetLangArrayString(subtitles)
 		qualityList := utils.GetVideosArrayString(videos[0])
 
+		var filePath string
+
+		if videoItem.Output == "" {
+			filePath = fmt.Sprintf("%s/%s/", w.opts.cfg.OutputDir, videoItem.MovieSlug)
+		} else {
+			filePath = fmt.Sprintf("%s/%s/", videoItem.Output, videoItem.MovieSlug)
+		}
+
 		err = w.opts.transcoder.GenerateFilesDirectory(folder.FolderOpts{
-			OutputPath:   w.opts.cfg.OutputDir + "/" + videoItem.MovieSlug,
+			OutputPath:   filePath,
 			AudioList:    audioList,
 			SubtitleList: subtitleList,
 			VideoList:    qualityList,
@@ -410,4 +418,12 @@ func (w *workerPools) getS3Link(mType, slug, epSlug string) string {
 	}
 
 	return fmt.Sprintf("s3://%s/%ss/%s/", w.opts.cfg.BucketName, mType, slug)
+}
+
+func (w *workerPools) getOutputPath(path, slug string) string {
+	if path == "" {
+		return fmt.Sprintf("%s/%s/", w.opts.cfg.OutputDir, slug)
+	}
+
+	return fmt.Sprintf("%s/%s/", path, slug)
 }
