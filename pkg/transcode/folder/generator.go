@@ -24,6 +24,7 @@ type GenerateMasterOpts struct {
 	SubtitleList   []ffmpeg.Tags
 	ResolutionList []ffmpeg.Resolution
 	Slug           string
+	OutputPath     string
 }
 
 type FileFolderGenerator interface {
@@ -64,7 +65,7 @@ func (f *FolderObject) GenerateFilesDirectory(opts FolderOpts) error {
 func (f *FolderObject) GenerateMasterPlaylist(opts GenerateMasterOpts) error {
 	var (
 		err        error
-		outputPath = fmt.Sprintf("%s/%s", f.cfg.OutputDir, opts.Slug)
+		outputPath = fmt.Sprintf("%s/%s", opts.OutputPath, opts.Slug)
 
 		fileContent     string
 		stereoContent   string
