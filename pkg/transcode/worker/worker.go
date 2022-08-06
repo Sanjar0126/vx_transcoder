@@ -106,7 +106,14 @@ func (w *workerPools) Upload() {
 			continue
 		}
 
-		filePath := fmt.Sprintf("%s/%s/", w.opts.cfg.OutputDir, videoItem.MovieSlug)
+		var filePath string
+
+		if videoItem.Output == "" {
+			filePath = fmt.Sprintf("%s/%s/", w.opts.cfg.OutputDir, videoItem.MovieSlug)
+		} else {
+			filePath = fmt.Sprintf("%s/%s/", videoItem.Output, videoItem.MovieSlug)
+		}
+
 		s3link := w.getS3Link(videoItem.Type, videoItem.MovieSlug, videoItem.SerialSlug)
 
 		err = w.opts.transcoder.UploadToS3(filePath, s3link)
