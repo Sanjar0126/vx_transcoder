@@ -48,6 +48,7 @@ func (c *Cronjob) Run() {
 }
 
 func (c *Cronjob) Initial() {
+	c.log.Info("cronjob is registered")
 	c.transcode()
 	c.upload()
 }

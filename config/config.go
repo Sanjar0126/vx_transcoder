@@ -79,8 +79,10 @@ func Load() Config { //nolint
 		"%s%s", absPath, "/scripts",
 	)))
 
+	// config.OutputDir = cast.ToString(env("OUTPUT_DIRECTORY",
+	// 	"/media/voxe/Expansion/download_transcode"))
 	config.OutputDir = cast.ToString(env("OUTPUT_DIRECTORY",
-		"/media/voxe/Expansion/download_transcode"))
+		"/media/voxe/Transcend/download_transcode"))
 	config.InputDir = cast.ToString(env("INPUT_DIRECTORY", "/media/voxe/Expansion/gotta_transcode"))
 
 	return config
