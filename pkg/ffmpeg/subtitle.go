@@ -1,6 +1,7 @@
 package ffmpeg
 
 import (
+	"errors"
 	"fmt"
 	"os/exec"
 	"strconv"
@@ -58,7 +59,7 @@ func (s *SubtitleAPI) ExtractSubtitle(input, lang, slug string, index int) error
 
 	if err != nil {
 		s.log.Error("failed to extract audio", logger.Error(err))
-		return err
+		return errors.New(string(out))
 	}
 
 	s.log.Info("extract output", logger.String("output", string(out)))

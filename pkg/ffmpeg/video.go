@@ -1,6 +1,7 @@
 package ffmpeg
 
 import (
+	"errors"
 	"fmt"
 	"os/exec"
 
@@ -71,7 +72,7 @@ func (v *VideoAPI) ResizeVideo(args ResizeVideoArgs) error {
 
 	if err != nil {
 		v.log.Error("failed to extract video", logger.Error(err), logger.String("std", string(out)))
-		return err
+		return errors.New(string(out))
 	}
 
 	v.log.Info("extract output", logger.String("output", ""))

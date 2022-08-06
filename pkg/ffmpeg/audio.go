@@ -1,6 +1,7 @@
 package ffmpeg
 
 import (
+	"errors"
 	"fmt"
 	"os/exec"
 	"strconv"
@@ -56,11 +57,11 @@ func (a *AudioAPI) ExtractAudio(input, lang, slug string, index int) error {
 		strconv.Itoa(index), // index of stream
 		a.defaultChunkSize,  // chunk size
 		outputPath,          // where to save the file
-	).Output()
+	).CombinedOutput()
 
 	if err != nil {
 		a.log.Error("failed to extract audio", logger.Error(err))
-		return err
+		return errors.New(string(cmd))
 	}
 
 	a.log.Info("extract output", logger.String("output", string(cmd)))
