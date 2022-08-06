@@ -31,13 +31,13 @@ func NewCronjob(log logger.Logger, cfg config.Config,
 }
 
 func (c *Cronjob) Run() {
-	_, err := c.cronJob.AddFunc("@every 30m", c.transcode)
+	_, err := c.cronJob.AddFunc("@every 15m", c.transcode)
 	if err != nil {
 		c.log.Error("failed to register cronjob", logger.Error(err))
 		panic(err)
 	}
 
-	_, err = c.cronJob.AddFunc("@every 15m", c.upload)
+	_, err = c.cronJob.AddFunc("@every 10m", c.upload)
 	if err != nil {
 		c.log.Error("failed to register cronjob", logger.Error(err))
 		panic(err)

@@ -54,4 +54,5 @@ type UploadedVideoFull struct {
 	UpdatedAt     time.Time       `bson:"updated_at,omitempty" json:"updated_at"`
 	CreatedAt     time.Time       `bson:"created_at,omitempty" json:"created_at"`
 	Failed        bool            `bson:"failed"`
+	SerialSlug    string          `bson:"serial_slug"`
 }

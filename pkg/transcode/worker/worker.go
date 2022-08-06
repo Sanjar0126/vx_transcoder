@@ -107,8 +107,7 @@ func (w *workerPools) Upload() {
 		}
 
 		filePath := fmt.Sprintf("%s/%s/", w.opts.cfg.OutputDir, videoItem.MovieSlug)
-		s3link := w.getS3Link(videoItem.Type, videoItem.MovieSlug,
-			videoItem.SeasonNumber, videoItem.EpisodeNumber)
+		s3link := w.getS3Link(videoItem.Type, videoItem.MovieSlug, videoItem.SerialSlug)
 
 		err = w.opts.transcoder.UploadToS3(filePath, s3link)
 		if err != nil {
@@ -390,10 +389,17 @@ func (w *workerPools) extractLayers(inputPath string) ([]ffmpeg.Stream, []ffmpeg
 	return videos, audios, subtitles, nil
 }
 
-func (w *workerPools) getS3Link(mType, slug string, season, episode int32) string {
+// func (w *workerPools) getS3Link(mType, slug string, season, episode int32) string {
+// 	if mType == config.Episode {
+// 		return fmt.Sprintf("s3://%s/%ss/%s/%s-S%dE%d", w.opts.cfg.BucketName, mType,
+// 			slug, slug, season, episode)
+// 	}
+
+// 	return fmt.Sprintf("s3://%s/%ss/%s/", w.opts.cfg.BucketName, mType, slug)
+// }
+func (w *workerPools) getS3Link(mType, slug, epSlug string) string {
 	if mType == config.Episode {
-		return fmt.Sprintf("s3://%s/%ss/%s/%s-S%dE%d", w.opts.cfg.BucketName, mType,
-			slug, slug, season, episode)
+		return fmt.Sprintf("s3://%s/%ss/%s/%s", w.opts.cfg.BucketName, "serial", epSlug, slug)
 	}
 
 	return fmt.Sprintf("s3://%s/%ss/%s/", w.opts.cfg.BucketName, mType, slug)
