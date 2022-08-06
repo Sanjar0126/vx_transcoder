@@ -239,9 +239,12 @@ func (w *workerPools) SubtitleInfo() {
 		inputPath := fmt.Sprintf(config.InputPathTemplate, videoItem.Path, videoItem.MovieSlug,
 			videoItem.Extension)
 
+		outputPath := w.getOutputPath(videoItem.Output, videoItem.MovieSlug)
+
 		for idx, stream := range videoItem.Subtitles {
 			lang := utils.GetTag(stream.Tags, idx).Language
-			err = w.opts.transcoder.ExtractSubtitle(inputPath, lang, videoItem.MovieSlug, idx)
+			err = w.opts.transcoder.ExtractSubtitle(inputPath, lang, videoItem.MovieSlug,
+				outputPath, idx)
 
 			if w.ffmpegError(videoItem.ID, "error while extracting audio", err) {
 				continue
@@ -274,9 +277,12 @@ func (w *workerPools) AudioInfo() {
 		inputPath := fmt.Sprintf(config.InputPathTemplate, videoItem.Path, videoItem.MovieSlug,
 			videoItem.Extension)
 
+		outputPath := w.getOutputPath(videoItem.Output, videoItem.MovieSlug)
+
 		for idx, stream := range videoItem.Audios {
 			lang := utils.GetTag(stream.Tags, idx).Language
-			err = w.opts.transcoder.ExtractAudio(inputPath, lang, videoItem.MovieSlug, idx)
+			err = w.opts.transcoder.ExtractAudio(inputPath, lang, videoItem.MovieSlug, outputPath,
+				idx)
 
 			if w.ffmpegError(videoItem.ID, "error while extracting info of audio", err) {
 				continue
@@ -318,13 +324,7 @@ func (w *workerPools) CreateFolder() {
 		subtitleList := utils.GetLangArrayString(subtitles)
 		qualityList := utils.GetVideosArrayString(videos[0])
 
-		var filePath string
-
-		if videoItem.Output == "" {
-			filePath = fmt.Sprintf("%s/%s/", w.opts.cfg.OutputDir, videoItem.MovieSlug)
-		} else {
-			filePath = fmt.Sprintf("%s/%s/", videoItem.Output, videoItem.MovieSlug)
-		}
+		var filePath = w.getOutputPath(videoItem.Output, videoItem.MovieSlug)
 
 		err = w.opts.transcoder.GenerateFilesDirectory(folder.FolderOpts{
 			OutputPath:   filePath,

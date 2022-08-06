@@ -41,9 +41,9 @@ func (a *AudioAPI) GetAudioLayers(input string) ([]Stream, error) {
 	return audioLayers, nil
 }
 
-func (a *AudioAPI) ExtractAudio(input, lang, slug string, index int) error {
+func (a *AudioAPI) ExtractAudio(input, lang, slug, output string, index int) error {
 	var (
-		outputPath         = fmt.Sprintf("%s/%s/audios/%s", a.cfg.OutputDir, slug, lang)
+		outputPath         = fmt.Sprintf("%saudios/%s", output, lang)
 		extractAudioScript = fmt.Sprintf("%s%s", a.cfg.ScriptsFolder, "/ffmpeg/extract_audio.sh")
 	)
 
