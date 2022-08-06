@@ -21,8 +21,8 @@ var (
 
 	StagesArray = []string{"new", "audio", "video", "subtitle", "master"}
 
-	JobCount            = 4
-	VideoResizeJobCount = 3
+	JobCount            = 6
+	VideoResizeJobCount = 4
 	UploadJobCount      = 6
 
 	InputPathTemplate = "%s/%s.%s"
