@@ -12,7 +12,7 @@ type SubtitleLayerReader interface {
 
 type SubtitleExtracter interface {
 	SubtitleLayerReader
-	ExtractSubtitle(input, lang, slug string, index int) error
+	ExtractSubtitle(input, lang, slug, output string, index int) error
 }
 
 type SubtitleObject struct {
@@ -34,6 +34,6 @@ func (s *SubtitleObject) GetSubtitleLayers(input string) ([]ffmpeg.Stream, error
 	return s.subtitle.GetSubtitleLayers(input)
 }
 
-func (s *SubtitleObject) ExtractSubtitle(input, lang, slug string, index int) error {
-	return s.subtitle.ExtractSubtitle(input, lang, slug, index)
+func (s *SubtitleObject) ExtractSubtitle(input, lang, slug, output string, index int) error {
+	return s.subtitle.ExtractSubtitle(input, lang, slug, output, index)
 }

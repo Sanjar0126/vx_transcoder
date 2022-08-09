@@ -1,6 +1,7 @@
 package ffmpeg
 
 import (
+	"errors"
 	"fmt"
 	"os/exec"
 	"strconv"
@@ -40,9 +41,9 @@ func (a *AudioAPI) GetAudioLayers(input string) ([]Stream, error) {
 	return audioLayers, nil
 }
 
-func (a *AudioAPI) ExtractAudio(input, lang, slug string, index int) error {
+func (a *AudioAPI) ExtractAudio(input, lang, slug, output string, index int) error {
 	var (
-		outputPath         = fmt.Sprintf("%s/%s/audios/%s", a.cfg.OutputDir, slug, lang)
+		outputPath         = fmt.Sprintf("%saudios/%s", output, lang)
 		extractAudioScript = fmt.Sprintf("%s%s", a.cfg.ScriptsFolder, "/ffmpeg/extract_audio.sh")
 	)
 
@@ -56,11 +57,11 @@ func (a *AudioAPI) ExtractAudio(input, lang, slug string, index int) error {
 		strconv.Itoa(index), // index of stream
 		a.defaultChunkSize,  // chunk size
 		outputPath,          // where to save the file
-	).Output()
+	).CombinedOutput()
 
 	if err != nil {
 		a.log.Error("failed to extract audio", logger.Error(err))
-		return err
+		return errors.New(string(cmd))
 	}
 
 	a.log.Info("extract output", logger.String("output", string(cmd)))

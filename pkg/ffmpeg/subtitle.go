@@ -1,6 +1,7 @@
 package ffmpeg
 
 import (
+	"errors"
 	"fmt"
 	"os/exec"
 	"strconv"
@@ -38,9 +39,9 @@ func (s *SubtitleAPI) GetSubtitleLayers(input string) ([]Stream, error) {
 	return subtitleLayers, nil
 }
 
-func (s *SubtitleAPI) ExtractSubtitle(input, lang, slug string, index int) error {
+func (s *SubtitleAPI) ExtractSubtitle(input, lang, slug, output string, index int) error {
 	var (
-		outputPath            = fmt.Sprintf("%s/%s/subtitles/%s", s.cfg.OutputDir, slug, lang)
+		outputPath            = fmt.Sprintf("%ssubtitles/%s", output, lang)
 		extractSubtitleScript = fmt.Sprintf(
 			"%s%s", s.cfg.ScriptsFolder, "/ffmpeg/extract_subtitle.sh")
 	)
@@ -58,7 +59,7 @@ func (s *SubtitleAPI) ExtractSubtitle(input, lang, slug string, index int) error
 
 	if err != nil {
 		s.log.Error("failed to extract audio", logger.Error(err))
-		return err
+		return errors.New(string(out))
 	}
 
 	s.log.Info("extract output", logger.String("output", string(out)))

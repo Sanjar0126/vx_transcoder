@@ -65,7 +65,7 @@ func (f *FolderObject) GenerateFilesDirectory(opts FolderOpts) error {
 func (f *FolderObject) GenerateMasterPlaylist(opts GenerateMasterOpts) error {
 	var (
 		err        error
-		outputPath = fmt.Sprintf("%s/%s", opts.OutputPath, opts.Slug)
+		outputPath = opts.OutputPath
 
 		fileContent     string
 		stereoContent   string
