@@ -224,6 +224,7 @@ out:
 }
 
 func (w *workerPools) SubtitleInfo() {
+out:
 	for job := range w.subtitleJobs {
 		videoItem, err := w.opts.db.UploadedVideo().Get(context.Background(), job)
 		if err != nil {
@@ -247,7 +248,7 @@ func (w *workerPools) SubtitleInfo() {
 				outputPath, idx)
 
 			if w.ffmpegError(videoItem.ID, "error while extracting audio", err) {
-				continue
+				continue out
 			}
 		}
 
@@ -262,6 +263,7 @@ func (w *workerPools) SubtitleInfo() {
 }
 
 func (w *workerPools) AudioInfo() {
+out:
 	for job := range w.audioJobs {
 		videoItem, err := w.opts.db.UploadedVideo().Get(context.Background(), job)
 		if err != nil {
@@ -285,7 +287,7 @@ func (w *workerPools) AudioInfo() {
 				idx)
 
 			if w.ffmpegError(videoItem.ID, "error while extracting info of audio", err) {
-				continue
+				continue out
 			}
 		}
 
