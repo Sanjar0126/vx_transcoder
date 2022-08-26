@@ -194,22 +194,22 @@ out:
 
 		outputPath := w.getOutputPath(videoItem.Output, videoItem.MovieSlug)
 
-		for _, stream := range videoItem.Videos {
-			resolutionList := utils.GetResolution(stream)
+		stream := videoItem.Videos[0]
 
-			for _, resolution := range resolutionList {
-				err = w.opts.transcoder.ResizeVideo(ffmpeg.ResizeVideoArgs{
-					Slug:        videoItem.MovieSlug,
-					Input:       inputPath,
-					Width:       strconv.Itoa(resolution.Width),
-					Height:      strconv.Itoa(resolution.Height),
-					BitRate:     resolution.BitRate,
-					InputObject: stream,
-					OutputPath:  outputPath,
-				})
-				if w.ffmpegError(videoItem.ID, "error while extracting video", err) {
-					continue out
-				}
+		resolutionList := utils.GetResolution(stream)
+
+		for _, resolution := range resolutionList {
+			err = w.opts.transcoder.ResizeVideo(ffmpeg.ResizeVideoArgs{
+				Slug:        videoItem.MovieSlug,
+				Input:       inputPath,
+				Width:       strconv.Itoa(resolution.Width),
+				Height:      strconv.Itoa(resolution.Height),
+				BitRate:     resolution.BitRate,
+				InputObject: stream,
+				OutputPath:  outputPath,
+			})
+			if w.ffmpegError(videoItem.ID, "error while extracting video", err) {
+				continue out
 			}
 		}
 
