@@ -358,8 +358,6 @@ func (w *workerPools) CreateFolder() {
 
 func (w *workerPools) ffmpegError(id, msg string, err error) bool {
 	if err != nil {
-		w.opts.log.Error(msg, logger.Error(err))
-
 		dbErr := w.updateFailure(id, err.Error())
 		if dbErr != nil {
 			w.opts.log.Error(msgs.ErrUpdFail, logger.Error(err))

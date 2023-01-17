@@ -1,10 +1,12 @@
 #!/bin/bash
 input_video=$1
+
 track_number=$2
 segment_time=$3
 output_path=$4
 
 echo $input_video
+
 echo $track_number
 echo $segment_time
 echo $output_path

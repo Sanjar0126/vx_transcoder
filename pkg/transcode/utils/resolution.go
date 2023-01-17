@@ -97,7 +97,7 @@ func GetBitRate(width, height int) string {
 	//	return "3145728"
 	//}
 	var (
-		bpp = 0.077
+		bpp = 0.078
 		fps = 23.999
 	)
 
