@@ -68,7 +68,6 @@ type opts struct {
 func (w *workerPools) DistributeJobs(objs []*models.UploadedVideoFull) {
 	for _, item := range objs {
 		if _, exists := w.jobsMap[item.ID]; exists {
-			w.opts.log.Info("already exists in queue")
 			continue
 		} else {
 			w.jobsMap[item.ID] = struct{}{}
