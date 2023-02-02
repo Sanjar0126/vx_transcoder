@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"sync"
 
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/config"
 	"gitlab.com/samandarobidovfrd/voxe_transcoding_service/models"
@@ -29,7 +30,7 @@ type Worker interface {
 func NewWorker(transcoder transcoder.Transcoder, log logger.Logger,
 	cfg *config.Config, db storage.StorageI) Worker {
 	return &workerPools{
-		jobsMap:           make(map[string]struct{}),
+		jobsMap:           sync.Map{},
 		folderJobs:        make(chan string, config.JobCount),
 		audioJobs:         make(chan string, config.JobCount),
 		videoJobs:         make(chan string, config.JobCount),
@@ -46,7 +47,8 @@ func NewWorker(transcoder transcoder.Transcoder, log logger.Logger,
 }
 
 type workerPools struct {
-	jobsMap map[string]struct{} // nolint
+	// jobsMap map[string]struct{} // nolint
+	jobsMap sync.Map
 
 	folderJobs        chan string
 	audioJobs         chan string
@@ -67,10 +69,10 @@ type opts struct {
 
 func (w *workerPools) DistributeJobs(objs []*models.UploadedVideoFull) {
 	for _, item := range objs {
-		if _, exists := w.jobsMap[item.ID]; exists {
+		if _, exists := w.jobsMap.Load(item.ID); exists {
 			continue
 		} else {
-			w.jobsMap[item.ID] = struct{}{}
+			w.jobsMap.Store(item.ID, struct{}{})
 		}
 
 		switch item.Stage {
@@ -121,7 +123,7 @@ func (w *workerPools) Upload() {
 			return
 		}
 
-		delete(w.jobsMap, job)
+		w.jobsMap.Delete(job)
 	}
 }
 
@@ -170,7 +172,7 @@ func (w *workerPools) MasterGenerate() {
 			return
 		}
 
-		delete(w.jobsMap, job)
+		w.jobsMap.Delete(job)
 	}
 }
 
@@ -218,7 +220,7 @@ out:
 			return
 		}
 
-		delete(w.jobsMap, job)
+		w.jobsMap.Delete(job)
 	}
 }
 
@@ -257,7 +259,7 @@ out:
 			return
 		}
 
-		delete(w.jobsMap, job)
+		w.jobsMap.Delete(job)
 	}
 }
 
@@ -296,7 +298,7 @@ out:
 			return
 		}
 
-		delete(w.jobsMap, job)
+		w.jobsMap.Delete(job)
 	}
 }
 
@@ -351,7 +353,7 @@ func (w *workerPools) CreateFolder() {
 			return
 		}
 
-		delete(w.jobsMap, job)
+		w.jobsMap.Delete(job)
 	}
 }
 

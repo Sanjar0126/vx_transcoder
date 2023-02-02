@@ -63,12 +63,14 @@ func (c *Cronjob) upload() {
 			c.log.Error("error while getting list of videos", logger.Error(err))
 		}
 
-		c.worker[disk].DistributeJobs(dbRes)
+		go c.worker[disk].DistributeJobs(dbRes)
 	}
 }
 
 func (c *Cronjob) transcode() {
 	for _, disk := range config.DiskArray {
+		// c.log.Info("transcode cronjob", logger.String("disk", disk))
+
 		dbRes, err := c.db.UploadedVideo().GetAll(context.Background(), models.UploadedVideoFilter{
 			Stages: config.StagesArray,
 			Disk:   disk,
@@ -77,6 +79,6 @@ func (c *Cronjob) transcode() {
 			c.log.Error("error while getting list of videos", logger.Error(err))
 		}
 
-		c.worker[disk].DistributeJobs(dbRes)
+		go c.worker[disk].DistributeJobs(dbRes)
 	}
 }

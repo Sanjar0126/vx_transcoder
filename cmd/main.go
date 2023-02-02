@@ -33,10 +33,11 @@ func main() {
 
 	transcoderObj := transcoder.NewTranscoder(&cfg, log)
 
-	var workerPool map[string]worker.Worker
+	workerPool := make(map[string]worker.Worker)
 
 	for _, disk := range config.DiskArray {
 		workerPool[disk] = worker.NewWorker(transcoderObj, log, &cfg, storageDB)
+
 		for i := 0; i < config.JobCount; i++ {
 			go workerPool[disk].CreateFolder()
 			go workerPool[disk].AudioInfo()
