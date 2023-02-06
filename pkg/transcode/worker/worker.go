@@ -208,6 +208,7 @@ out:
 				BitRate:     resolution.BitRate,
 				InputObject: stream,
 				OutputPath:  outputPath,
+				Disk:        videoItem.Disk,
 			})
 			if w.ffmpegError(videoItem.ID, "error while extracting video", err) {
 				continue out

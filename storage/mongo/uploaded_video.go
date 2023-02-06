@@ -105,7 +105,6 @@ func (up *uploadedVideoStorage) GetAll(ctx context.Context,
 		"stage": bson.M{
 			"$in": filter.Stages,
 		},
-		"disk":   filter.Disk,
 		"failed": false,
 	})
 	if err != nil {

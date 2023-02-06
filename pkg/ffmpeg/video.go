@@ -46,6 +46,7 @@ type ResizeVideoArgs struct {
 	BitRate     string
 	InputObject Stream
 	OutputPath  string
+	Disk        string
 }
 
 func (v *VideoAPI) ResizeVideo(args ResizeVideoArgs) error {
@@ -58,7 +59,7 @@ func (v *VideoAPI) ResizeVideo(args ResizeVideoArgs) error {
 		resizingWidthHeight = fmt.Sprintf("%s:-2", args.Width)
 	)
 
-	v.log.Info("resizing video", logger.String("slug", args.Slug),
+	v.log.Info("resizing video", logger.String("slug", args.Slug), logger.String("disk", args.Disk),
 		logger.String("resolution", args.Height))
 
 	out, err := exec.Command(

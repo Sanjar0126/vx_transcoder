@@ -8,6 +8,7 @@ import (
 
 var (
 	UploadedVideoCollection = "uploaded_video"
+	// UploadedVideoCollection = "uploaded_video2"
 )
 
 type UploadedVideoI interface {

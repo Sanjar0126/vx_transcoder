@@ -33,25 +33,21 @@ func main() {
 
 	transcoderObj := transcoder.NewTranscoder(&cfg, log)
 
-	workerPool := make(map[string]worker.Worker)
+	workerPool := worker.NewWorker(transcoderObj, log, &cfg, storageDB)
 
-	for _, disk := range config.DiskArray {
-		workerPool[disk] = worker.NewWorker(transcoderObj, log, &cfg, storageDB)
+	for i := 0; i < config.JobCount; i++ {
+		go workerPool.CreateFolder()
+		go workerPool.AudioInfo()
+		go workerPool.SubtitleInfo()
+		go workerPool.MasterGenerate()
+	}
 
-		for i := 0; i < config.JobCount; i++ {
-			go workerPool[disk].CreateFolder()
-			go workerPool[disk].AudioInfo()
-			go workerPool[disk].SubtitleInfo()
-			go workerPool[disk].MasterGenerate()
-		}
+	for i := 0; i < config.VideoResizeJobCount; i++ {
+		go workerPool.VideoInfo()
+	}
 
-		for i := 0; i < config.VideoResizeJobCount; i++ {
-			go workerPool[disk].VideoInfo()
-		}
-
-		for i := 0; i < config.UploadJobCount; i++ {
-			go workerPool[disk].Upload()
-		}
+	for i := 0; i < config.UploadJobCount; i++ {
+		go workerPool.Upload()
 	}
 
 	c := cron.New()
