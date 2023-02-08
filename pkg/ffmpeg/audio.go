@@ -41,13 +41,14 @@ func (a *AudioAPI) GetAudioLayers(input string) ([]Stream, error) {
 	return audioLayers, nil
 }
 
-func (a *AudioAPI) ExtractAudio(input, lang, slug, output string, index int) error {
+func (a *AudioAPI) ExtractAudio(input, lang, slug, output, disk string, index int) error {
 	var (
 		outputPath         = fmt.Sprintf("%saudios/%s", output, lang)
 		extractAudioScript = fmt.Sprintf("%s%s", a.cfg.ScriptsFolder, "/ffmpeg/extract_audio.sh")
 	)
 
-	a.log.Info("extracting audio info", logger.String("slug", slug), logger.String("lang", lang))
+	a.log.Info("extracting audio info", logger.String("slug", slug),
+		logger.String("lang", lang), logger.String("disk", disk))
 
 	cmd, err := exec.Command(
 		"/bin/sh",

@@ -39,14 +39,15 @@ func (s *SubtitleAPI) GetSubtitleLayers(input string) ([]Stream, error) {
 	return subtitleLayers, nil
 }
 
-func (s *SubtitleAPI) ExtractSubtitle(input, lang, slug, output string, index int) error {
+func (s *SubtitleAPI) ExtractSubtitle(input, lang, slug, output, disk string, index int) error {
 	var (
 		outputPath            = fmt.Sprintf("%ssubtitles/%s", output, lang)
 		extractSubtitleScript = fmt.Sprintf(
 			"%s%s", s.cfg.ScriptsFolder, "/ffmpeg/extract_subtitle.sh")
 	)
 
-	s.log.Info("extracting subtitle info", logger.String("slug", slug), logger.String("lang", lang))
+	s.log.Info("extracting subtitle info", logger.String("slug", slug),
+		logger.String("lang", lang), logger.String("disk", disk))
 
 	out, err := exec.Command(
 		"/bin/sh",

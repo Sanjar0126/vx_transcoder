@@ -11,7 +11,7 @@ type AudioLayerReader interface {
 }
 
 type AudioExtractor interface {
-	ExtractAudio(input, lang, slug, output string, index int) error
+	ExtractAudio(input, lang, slug, output, disk string, index int) error
 	AudioLayerReader
 }
 
@@ -34,6 +34,6 @@ func (a *AudioObject) ExtractAudioLayers(input string) ([]ffmpeg.Stream, error) 
 	return a.audio.GetAudioLayers(input)
 }
 
-func (a *AudioObject) ExtractAudio(input, lang, slug, output string, index int) error {
-	return a.audio.ExtractAudio(input, lang, slug, output, index)
+func (a *AudioObject) ExtractAudio(input, lang, slug, output, disk string, index int) error {
+	return a.audio.ExtractAudio(input, lang, slug, output, disk, index)
 }

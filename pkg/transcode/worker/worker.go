@@ -221,6 +221,8 @@ out:
 			return
 		}
 
+		w.opts.log.Info("video resize done", logger.String("slug", videoItem.MovieSlug))
+
 		w.jobsMap.Delete(job)
 	}
 }
@@ -247,7 +249,7 @@ out:
 		for idx, stream := range videoItem.Subtitles {
 			lang := utils.GetTag(stream.Tags, idx).Language
 			err = w.opts.transcoder.ExtractSubtitle(inputPath, lang, videoItem.MovieSlug,
-				outputPath, idx)
+				outputPath, videoItem.Disk, idx)
 
 			if w.ffmpegError(videoItem.ID, "error while extracting audio", err) {
 				continue out
@@ -259,6 +261,8 @@ out:
 			w.opts.log.Error(msgs.ErrUpdStage, logger.Error(err))
 			return
 		}
+
+		w.opts.log.Info("subtitle extract done", logger.String("slug", videoItem.MovieSlug))
 
 		w.jobsMap.Delete(job)
 	}
@@ -286,7 +290,7 @@ out:
 		for idx, stream := range videoItem.Audios {
 			lang := utils.GetTag(stream.Tags, idx).Language
 			err = w.opts.transcoder.ExtractAudio(inputPath, lang, videoItem.MovieSlug, outputPath,
-				idx)
+				videoItem.Disk, idx)
 
 			if w.ffmpegError(videoItem.ID, "error while extracting info of audio", err) {
 				continue out
@@ -298,6 +302,8 @@ out:
 			w.opts.log.Error(msgs.ErrUpdStage, logger.Error(err))
 			return
 		}
+
+		w.opts.log.Info("audio extract done", logger.String("slug", videoItem.MovieSlug))
 
 		w.jobsMap.Delete(job)
 	}
