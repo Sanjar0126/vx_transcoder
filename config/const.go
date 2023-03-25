@@ -22,7 +22,7 @@ var (
 	StagesArray = []string{"new", "audio", "video", "subtitle", "master"}
 
 	JobCount            = 3
-	VideoResizeJobCount = 3
+	VideoResizeJobCount = 1
 	UploadJobCount      = 4
 
 	InputPathTemplate = "%s/%s.%s"
@@ -37,5 +37,5 @@ var (
 
 	Episode = "episode"
 
-	DiskArray = []string{"Expansion", "H1"}
+	DiskArray = []string{"Expansion", "H1", "T2"}
 )

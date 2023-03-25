@@ -209,6 +209,7 @@ out:
 				InputObject: stream,
 				OutputPath:  outputPath,
 				Disk:        videoItem.Disk,
+				Codec:       stream.CodecName,
 			})
 			if w.ffmpegError(videoItem.ID, "error while extracting video", err) {
 				continue out
