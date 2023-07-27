@@ -2,8 +2,6 @@
 input_video=$1
 destination=$2
 
-aws s3 cp "$input_video" "$destination" --recursive
-
 aws s3 sync "$input_video" "$destination"
 
 bot_token='1714608232:AAEI8xKe0dZ3Ouhx3GUCJbxJcJOumZGHg7I'

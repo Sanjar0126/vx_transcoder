@@ -68,7 +68,7 @@ func Load() Config { //nolint
 
 	config.Region = cast.ToString(env("BUCKET_REGION", "eu-north-1"))
 	config.TempBucketName = cast.ToString(env("TEMP_BUCKET_NAME", "voxe-temp-1"))
-	config.BucketName = cast.ToString(env("BUCKET_NAME", "voxe-cdn"))
+	config.BucketName = cast.ToString(env("BUCKET_NAME", "videos.voxe.tv"))
 
 	config.FFmpegCPU = cast.ToString(env("FFMPEG_CPU", "ffmpeg_binary"))
 	config.FFprobeCPU = cast.ToString(env("FFPROBE_CPU", "ffprobe_binary"))

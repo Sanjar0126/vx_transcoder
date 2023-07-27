@@ -71,7 +71,7 @@ func (v *VideoAPI) ResizeVideo(args ResizeVideoArgs) error {
 	v.log.Info("resizing video", logger.String("slug", args.Slug), logger.String("disk", args.Disk),
 		logger.String("resolution", args.Height))
 
-	out, err := exec.Command(
+	cmd := exec.Command(
 		"/bin/sh",
 		resizeVideoScript,
 		args.Input,
@@ -79,10 +79,14 @@ func (v *VideoAPI) ResizeVideo(args ResizeVideoArgs) error {
 		args.BitRate,
 		v.defaultChunkSize,
 		outputPath,
-	).CombinedOutput()
+	)
+
+	// fmt.Println(cmd)
+
+	out, err := cmd.CombinedOutput()
 
 	if err != nil {
-		v.log.Error("failed to extract video", logger.Error(err), logger.String("std", string(out)))
+		v.log.Error("failed to extract video", logger.Error(err))
 		return errors.New(string(out))
 	}
 

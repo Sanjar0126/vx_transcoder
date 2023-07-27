@@ -32,7 +32,7 @@ func newZapLogger(level, timeFormat string) *zap.Logger {
 		encoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
 	}
 
-	consoleEncoder := zapcore.NewJSONEncoder(encoderCfg)
+	consoleEncoder := zapcore.NewConsoleEncoder(encoderCfg)
 
 	core := zapcore.NewTee(
 		zapcore.NewCore(consoleEncoder, consoleErrors, highPriority),
