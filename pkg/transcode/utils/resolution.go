@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 
@@ -11,11 +12,13 @@ import (
 func GetVideosArrayString(streams fffmpeg.Stream) string {
 	var (
 		resolutions = []fffmpeg.Resolution{
-			{Width: 320, Height: 240},
-			{Width: 640, Height: 360},
+			// {Width: 320, Height: 240},
+			// {Width: 640, Height: 360},
 			{Width: 854, Height: 480},
 			{Width: 1280, Height: 720},
 			{Width: 1920, Height: 1080},
+			{Width: 2560, Height: 1440},
+			{Width: 3840, Height: 2160},
 		}
 		resolutionStrings []string
 		ids               []int
@@ -36,7 +39,7 @@ func GetVideosArrayString(streams fffmpeg.Stream) string {
 	if removed {
 		resolutions = append(resolutions, fffmpeg.Resolution{
 			Width:  streams.Width,
-			Height: streams.Height,
+			Height: getHeight(streams.Width),
 		})
 	}
 
@@ -50,11 +53,13 @@ func GetVideosArrayString(streams fffmpeg.Stream) string {
 func GetResolution(stream fffmpeg.Stream) []fffmpeg.Resolution {
 	var (
 		resolutions = []fffmpeg.Resolution{
-			{Width: 320, Height: 240},
-			{Width: 640, Height: 360},
+			// {Width: 320, Height: 240},
+			// {Width: 640, Height: 360},
 			{Width: 854, Height: 480},
 			{Width: 1280, Height: 720},
 			{Width: 1920, Height: 1080},
+			{Width: 2560, Height: 1440},
+			{Width: 3840, Height: 2160},
 		}
 		ids     []int
 		removed = false
@@ -73,15 +78,33 @@ func GetResolution(stream fffmpeg.Stream) []fffmpeg.Resolution {
 		removed = true
 	}
 
-	if removed {
+	if removed && math.Abs(float64(stream.Width-resolutions[len(resolutions)-1].Width)) > 100 {
 		resolutions = append(resolutions, fffmpeg.Resolution{
 			Width:   stream.Width,
-			Height:  stream.Height,
+			Height:  getHeight(stream.Width),
 			BitRate: GetBitRate(stream.Width, stream.Height),
 		})
 	}
 
 	return resolutions
+}
+
+func getHeight(width int) int {
+	if width <= 320 {
+		return 240
+	} else if 320 < width && width <= 640 {
+		return 360
+	} else if 640 < width && width <= 854 {
+		return 480
+	} else if 854 < width && width <= 1280 {
+		return 720
+	} else if 1280 < width && width <= 1920 {
+		return 1080
+	} else if 1920 < width && width <= 2560 {
+		return 1440
+	} else {
+		return 2160
+	}
 }
 
 func GetBitRate(width, height int) string {

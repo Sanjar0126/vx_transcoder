@@ -42,8 +42,8 @@ func NewTranscoder(cfg *config.Config, log logger.Logger) Transcoder {
 	}
 }
 
-func (t *transcoderStruct) ExtractAudio(input, lang, slug, output string, index int) error {
-	err := t.audio.ExtractAudio(input, lang, slug, output, index)
+func (t *transcoderStruct) ExtractAudio(input, lang, slug, output, disk string, index int) error {
+	err := t.audio.ExtractAudio(input, lang, slug, output, disk, index)
 	if err != nil {
 		t.log.Error("failed to extract audios", logger.Error(err))
 		return err
@@ -92,8 +92,8 @@ func (t *transcoderStruct) GetSubtitleLayers(input string) ([]ffmpeg.Stream, err
 	return streams, nil
 }
 
-func (t *transcoderStruct) ExtractSubtitle(input, lang, slug, output string, index int) error {
-	err := t.subtitle.ExtractSubtitle(input, lang, slug, output, index)
+func (t *transcoderStruct) ExtractSubtitle(input, lang, slug, output, disk string, index int) error {
+	err := t.subtitle.ExtractSubtitle(input, lang, slug, output, disk, index)
 	if err != nil {
 		t.log.Error("failed to extract subtitles", logger.Error(err))
 		return err
