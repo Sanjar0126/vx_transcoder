@@ -46,22 +46,32 @@ type ResizeVideoArgs struct {
 	BitRate     string
 	InputObject Stream
 	OutputPath  string
+	Disk        string
+	Codec       string
 }
 
 func (v *VideoAPI) ResizeVideo(args ResizeVideoArgs) error {
 	var (
 		outputPath = fmt.Sprintf(
-			"%svideos/%sp/video.m3u8", args.OutputPath, args.Height,
+			"%svideos/%sp", args.OutputPath, args.Height,
 		)
 
-		resizeVideoScript   = fmt.Sprintf("%s%s", v.cfg.ScriptsFolder, "/ffmpeg/resize_video.sh")
+		resizeVideoScript   string
 		resizingWidthHeight = fmt.Sprintf("%s:-2", args.Width)
 	)
 
-	v.log.Info("resizing video", logger.String("slug", args.Slug),
+	if args.Codec == "hevc" || args.Codec == "h265" || args.Codec == "x265" {
+		resizeVideoScript = fmt.Sprintf(
+			"%s%s", v.cfg.ScriptsFolder, "/ffmpeg/265_resize.sh")
+	} else {
+		resizeVideoScript = fmt.Sprintf(
+			"%s%s", v.cfg.ScriptsFolder, "/ffmpeg/resize_video.sh")
+	}
+
+	v.log.Info("resizing video", logger.String("slug", args.Slug), logger.String("disk", args.Disk),
 		logger.String("resolution", args.Height))
 
-	out, err := exec.Command(
+	cmd := exec.Command(
 		"/bin/sh",
 		resizeVideoScript,
 		args.Input,
@@ -69,10 +79,14 @@ func (v *VideoAPI) ResizeVideo(args ResizeVideoArgs) error {
 		args.BitRate,
 		v.defaultChunkSize,
 		outputPath,
-	).CombinedOutput()
+	)
+
+	// fmt.Println(cmd)
+
+	out, err := cmd.CombinedOutput()
 
 	if err != nil {
-		v.log.Error("failed to extract video", logger.Error(err), logger.String("std", string(out)))
+		v.log.Error("failed to extract video", logger.Error(err))
 		return errors.New(string(out))
 	}
 

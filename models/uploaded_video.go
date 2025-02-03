@@ -37,6 +37,7 @@ type UploadedVideo struct {
 
 type UploadedVideoFilter struct {
 	Stages []string `json:"stages" bson:"stages,omitempty"`
+	Disk   string   `bson:"disk"`
 }
 
 type UploadedVideoFull struct {
@@ -56,4 +57,5 @@ type UploadedVideoFull struct {
 	Failed        bool            `bson:"failed"`
 	SerialSlug    string          `bson:"serial_slug"`
 	Output        string          `bson:"output"`
+	Disk          string          `bson:"disk"`
 }

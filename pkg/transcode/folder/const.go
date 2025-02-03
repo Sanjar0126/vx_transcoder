@@ -13,4 +13,6 @@ const (
 		"NAME=\"%s\",DEFAULT=%s,AUTOSELECT=YES,FORCED=NO,URI=\"subtitles/%s/sub.m3u8\"\n"
 	videoTemplate = "%s#EXT-X-STREAM-INF:BANDWIDTH=%s,CODECS=%s,RESOLUTION=%dx%d," +
 		"AUDIO=\"%s\",SUBTITLES=\"%s\"\nvideos/%dp/video.m3u8\n"
+	noSubVideoTemplate = "%s#EXT-X-STREAM-INF:BANDWIDTH=%s,CODECS=%s,RESOLUTION=%dx%d," +
+		"AUDIO=\"%s\"\nvideos/%dp/video.m3u8\n"
 )

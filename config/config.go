@@ -57,8 +57,8 @@ func Load() Config { //nolint
 
 	config.RPCPort = cast.ToString(env("RPC_PORT", ":9112"))
 
-	config.AwsID = cast.ToString(env("AWS_ID", "AKIAIITHK7MFJRBTRQTA"))
-	config.AwsSecret = cast.ToString(env("AWS_SECRET", "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"))
+	config.AwsID = cast.ToString(env("AWS_ID", "KEY"))
+	config.AwsSecret = cast.ToString(env("AWS_SECRET", "SECRET"))
 
 	config.MongoDBHost = cast.ToString(env("MONGO_DB_HOST", "localhost"))
 	config.MongoDBPort = cast.ToInt(env("MONGO_DB_PORT", "27017"))
@@ -66,9 +66,9 @@ func Load() Config { //nolint
 	config.MongoDBUser = cast.ToString(env("MONGO_DB_USER", "mongo"))
 	config.MongoDBPassword = cast.ToString(env("MONGO_DB_PASSWORD", "mongo"))
 
-	config.Region = cast.ToString(env("BUCKET_REGION", "eu-north-1"))
-	config.TempBucketName = cast.ToString(env("TEMP_BUCKET_NAME", "voxe-temp-1"))
-	config.BucketName = cast.ToString(env("BUCKET_NAME", "voxe-cdn"))
+	config.Region = cast.ToString(env("BUCKET_REGION", "region"))
+	config.TempBucketName = cast.ToString(env("TEMP_BUCKET_NAME", "temp-bucket"))
+	config.BucketName = cast.ToString(env("BUCKET_NAME", "bucket"))
 
 	config.FFmpegCPU = cast.ToString(env("FFMPEG_CPU", "ffmpeg_binary"))
 	config.FFprobeCPU = cast.ToString(env("FFPROBE_CPU", "ffprobe_binary"))

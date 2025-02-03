@@ -71,6 +71,7 @@ func (f *FolderObject) GenerateMasterPlaylist(opts GenerateMasterOpts) error {
 		stereoContent   string
 		subtitleContent string
 		videoContent    string
+		hasSubtitle     = false
 	)
 
 	f.log.Info("Started generating master playlist", logger.String("input", opts.Slug))
@@ -85,6 +86,7 @@ func (f *FolderObject) GenerateMasterPlaylist(opts GenerateMasterOpts) error {
 	fileContent = fileContent + "\n" + stereoContent
 
 	for index, subtitle := range opts.SubtitleList {
+		hasSubtitle = true
 		subtitleContent = fmt.Sprintf(subtitleTemplate, subtitleContent, subtitleGroup,
 			subtitle.Language, subtitle.Title, getLanguage(index), subtitle.Language)
 	}
@@ -92,8 +94,13 @@ func (f *FolderObject) GenerateMasterPlaylist(opts GenerateMasterOpts) error {
 	fileContent = fileContent + "\n" + subtitleContent
 
 	for _, video := range opts.ResolutionList {
-		videoContent = fmt.Sprintf(videoTemplate, videoContent, video.BitRate, codecs,
-			video.Width, video.Height, stereoGroup, subtitleGroup, video.Height)
+		if hasSubtitle {
+			videoContent = fmt.Sprintf(videoTemplate, videoContent, video.BitRate, codecs,
+				video.Width, video.Height, stereoGroup, subtitleGroup, video.Height)
+		} else {
+			videoContent = fmt.Sprintf(noSubVideoTemplate, videoContent, video.BitRate, codecs,
+				video.Width, video.Height, stereoGroup, video.Height)
+		}
 	}
 
 	fileContent = fileContent + "\n" + videoContent

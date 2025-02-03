@@ -16,11 +16,11 @@ type Cronjob struct {
 	cfg     config.Config
 	cronJob *cron.Cron
 	db      storage.StorageI
-	worker  worker.Worker
+	worker  map[string]worker.Worker
 }
 
 func NewCronjob(log logger.Logger, cfg config.Config,
-	cron *cron.Cron, db storage.StorageI, worker worker.Worker) *Cronjob {
+	cron *cron.Cron, db storage.StorageI, worker map[string]worker.Worker) *Cronjob {
 	return &Cronjob{
 		cfg:     cfg,
 		log:     log,
@@ -31,13 +31,13 @@ func NewCronjob(log logger.Logger, cfg config.Config,
 }
 
 func (c *Cronjob) Run() {
-	_, err := c.cronJob.AddFunc("@every 15m", c.transcode)
+	_, err := c.cronJob.AddFunc("@every 5m", c.transcode)
 	if err != nil {
 		c.log.Error("failed to register cronjob", logger.Error(err))
 		panic(err)
 	}
 
-	_, err = c.cronJob.AddFunc("@every 10m", c.upload)
+	_, err = c.cronJob.AddFunc("@every 5m", c.upload)
 	if err != nil {
 		c.log.Error("failed to register cronjob", logger.Error(err))
 		panic(err)
@@ -54,23 +54,31 @@ func (c *Cronjob) Initial() {
 }
 
 func (c *Cronjob) upload() {
-	dbRes, err := c.db.UploadedVideo().GetAll(context.Background(), models.UploadedVideoFilter{
-		Stages: []string{config.UploadStage},
-	})
-	if err != nil {
-		c.log.Error("error while getting list of videos", logger.Error(err))
-	}
+	for _, disk := range config.DiskArray {
+		dbRes, err := c.db.UploadedVideo().GetAll(context.Background(), models.UploadedVideoFilter{
+			Stages: []string{config.UploadStage},
+			Disk:   disk,
+		})
+		if err != nil {
+			c.log.Error("error while getting list of videos", logger.Error(err))
+		}
 
-	c.worker.DistributeJobs(dbRes)
+		go c.worker[disk].DistributeJobs(dbRes)
+	}
 }
 
 func (c *Cronjob) transcode() {
-	dbRes, err := c.db.UploadedVideo().GetAll(context.Background(), models.UploadedVideoFilter{
-		Stages: config.StagesArray,
-	})
-	if err != nil {
-		c.log.Error("error while getting list of videos", logger.Error(err))
-	}
+	for _, disk := range config.DiskArray {
+		// c.log.Info("transcode cronjob", logger.String("disk", disk))
 
-	c.worker.DistributeJobs(dbRes)
+		dbRes, err := c.db.UploadedVideo().GetAll(context.Background(), models.UploadedVideoFilter{
+			Stages: config.StagesArray,
+			Disk:   disk,
+		})
+		if err != nil {
+			c.log.Error("error while getting list of videos", logger.Error(err))
+		}
+
+		go c.worker[disk].DistributeJobs(dbRes)
+	}
 }
